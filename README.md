@@ -1,9 +1,13 @@
-Your Game Title
-===============
+Pirate Flow
+===========
 
-Entry in PyWeek #26  <http://www.pyweek.org/4/>
+Submission for [PyWeek #26](http://www.pyweek.org/26/)
+
+Built by Remigijus Jarmalavičius.
 
 ![Pirate Flow Game Screenshot](/data/screenshots/screenshot.png?raw=true "Pirate Flow")
+
+Assets used in this game are with Public Domain license. They are from OpenGameArt.org
 
 DEPENDENCIES
 ------------
