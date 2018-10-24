@@ -10,6 +10,18 @@ SCREEN_HEIGHT = 736
 TILE_WIDTH = 32
 TILE_HEIGHT = 32
 
+class World(object):
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+
+    def up(self):
+        self.y -= 1
+        if self.y < 0: self.y = 0
+
+    def down(self):
+        self.y += 1
+
 class Level(object):
     def load_file(self, filename):
         self.map = []
@@ -97,16 +109,35 @@ if __name__=='__main__':
     level = Level()
     level.load_file('./data/levels/1.map')
 
-    # draw background - water
+    # load screen configuration
+    world = World()
+
+    # get background tile - water
     water_tile = pygame.image.load('./data/sprites/water.png')
     water_tile = pygame.transform.scale(water_tile, (TILE_WIDTH, TILE_HEIGHT))
-    for x in range(0, int(SCREEN_WIDTH / TILE_WIDTH) + 1):
-        for y in range(0, int(SCREEN_HEIGHT / TILE_HEIGHT) + 1):
-            screen.blit(water_tile, (x * TILE_WIDTH, y * TILE_HEIGHT))
-            tile = level.get_tile(x, y)
-            if tile['name'] != 'water':
-                screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
-    pygame.display.flip()
-    while pygame.event.wait().type != pygame.locals.QUIT:
-        pass
+    water = 0
+    game_over = False
+    while not game_over:
+        water += 2
+        if water == 32: water = 0
+        for x in range(-1, int(SCREEN_WIDTH / TILE_WIDTH) + 1):
+            for y in range(-1, int(SCREEN_HEIGHT / TILE_HEIGHT) + 1):
+                screen.blit(water_tile, (x * TILE_WIDTH + water + world.x, y * TILE_HEIGHT + world.y))
+                tile = level.get_tile(x, y)
+                if tile['name'] != 'water':
+                    screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH + world.x, y * TILE_HEIGHT + world.y))
+        pygame.display.flip()
+        pygame.time.Clock().tick(25)
+        for event in pygame.event.get():
+            if event.type == pygame.locals.QUIT:
+                game_over = True
+            elif event.type == pygame.locals.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    world.down()
+                elif event.key == pygame.K_UP:
+                    world.up()
+                elif event.type == pygame.K_LEFT:
+                    world.x -= 1
+                elif event.type == pygame.K_RIGHT:
+                    world.x += 1
