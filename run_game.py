@@ -129,6 +129,7 @@ if __name__=='__main__':
     pygame.init()
     pygame.font.init()
     pygame.display.set_caption('Pirate Flow - Pygame #26')
+    pygame.key.set_repeat(500, 100)
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     screen.fill((255, 255, 255))
 
