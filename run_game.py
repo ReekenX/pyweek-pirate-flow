@@ -46,7 +46,9 @@ class Player(object):
         self.y = int(self.y)
         self.level = level
         self.position = 'down'
-        self.down_image = pygame.image.load('./data/sprites/player.png')
+        self.down_image = image = pygame.transform.scale(
+                pygame.image.load('./data/sprites/player.png'),
+                (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
     def image(self):
         if self.position == 'right':
@@ -247,9 +249,10 @@ if __name__=='__main__':
         # render player
         player.recalculate()
         screen.blit(player.image(), (int((player.x - camera_x) * TILE_WIDTH), int((player.y - camera_y) * TILE_HEIGHT)))
+        half_bullet_size = 5
         for bullet in player.bullets:
             bullet.recalculate()
-            screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH), int((bullet.y - camera_y) * TILE_HEIGHT)))
+            screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) + half_bullet_size, int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) + half_bullet_size))
 
         # debug text
         text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
