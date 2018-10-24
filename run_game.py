@@ -11,16 +11,28 @@ TILE_WIDTH = 32
 TILE_HEIGHT = 32
 
 class World(object):
-    def __init__(self):
+    def __init__(self, world_width, world_height):
         self.x = 0
         self.y = 0
+        self.world_width = world_width
+        self.world_height = world_height
 
     def up(self):
-        self.y -= 1
-        if self.y < 0: self.y = 0
+        if self.y - TILE_HEIGHT >= 0:
+            self.y -= TILE_HEIGHT
 
     def down(self):
-        self.y += 1
+        if self.y + TILE_HEIGHT <= self.world_height:
+            self.y += TILE_HEIGHT
+
+    def left(self):
+        if self.x - TILE_WIDTH >= 0:
+            self.x -= TILE_WIDTH
+
+    def right(self):
+        if self.x + TILE_WIDTH <= self.world_width:
+            self.x += TILE_WIDTH
+
 
 class Level(object):
     def load_file(self, filename):
@@ -102,6 +114,7 @@ class Level(object):
 if __name__=='__main__':
     # init pygame
     pygame.init()
+    pygame.font.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     screen.fill((255, 255, 255))
 
@@ -110,11 +123,13 @@ if __name__=='__main__':
     level.load_file('./data/levels/1.map')
 
     # load screen configuration
-    world = World()
+    world = World(level.width * TILE_WIDTH - SCREEN_WIDTH, level.height * TILE_HEIGHT - SCREEN_HEIGHT)
 
     # get background tile - water
     water_tile = pygame.image.load('./data/sprites/water.png')
     water_tile = pygame.transform.scale(water_tile, (TILE_WIDTH, TILE_HEIGHT))
+
+    myfont = pygame.font.SysFont('Arial', 30)
 
     water = 0
     game_over = False
@@ -123,12 +138,23 @@ if __name__=='__main__':
         if water == 32: water = 0
         for x in range(-1, int(SCREEN_WIDTH / TILE_WIDTH) + 1):
             for y in range(-1, int(SCREEN_HEIGHT / TILE_HEIGHT) + 1):
-                screen.blit(water_tile, (x * TILE_WIDTH + water + world.x, y * TILE_HEIGHT + world.y))
-                tile = level.get_tile(x, y)
+                # render floating water - background layer
+                screen.blit(water_tile, (x * TILE_WIDTH + water, y * TILE_HEIGHT + water))
+
+                # render tiles
+                tile = level.get_tile(x + int(world.x / TILE_WIDTH), y + int(world.y / TILE_HEIGHT))
                 if tile['name'] != 'water':
-                    screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH + world.x, y * TILE_HEIGHT + world.y))
+                    screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
+
+                # debug text
+                text = myfont.render('{} x {}'.format(world.x, world.y), False, (0, 0, 0))
+                screen.blit(text, (10, 10))
+
+        # render and limit fps to 40
         pygame.display.flip()
-        pygame.time.Clock().tick(25)
+        pygame.time.Clock().tick(40)
+
+        # handle keypresses/gameplay
         for event in pygame.event.get():
             if event.type == pygame.locals.QUIT:
                 game_over = True
@@ -137,7 +163,7 @@ if __name__=='__main__':
                     world.down()
                 elif event.key == pygame.K_UP:
                     world.up()
-                elif event.type == pygame.K_LEFT:
-                    world.x -= 1
-                elif event.type == pygame.K_RIGHT:
-                    world.x += 1
+                elif event.key == pygame.K_LEFT:
+                    world.left()
+                elif event.key == pygame.K_RIGHT:
+                    world.right()
