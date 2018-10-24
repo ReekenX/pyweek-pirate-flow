@@ -10,6 +10,7 @@ SCREEN_HEIGHT = 736
 TILE_WIDTH = 32
 TILE_HEIGHT = 32
 
+
 class Bullet(object):
     def __init__(self, x, y, position):
         self.start_x = x
@@ -88,6 +89,11 @@ class Player(object):
             return True
         else:
             return False
+
+    def recalculate(self):
+        for bullet in self.bullets:
+            if bullet.finished():
+                self.bullets.remove(bullet)
 
     def fire(self):
         self.bullets.append(Bullet(self.x, self.y, self.position))
@@ -239,14 +245,14 @@ if __name__=='__main__':
                     screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
+        player.recalculate()
         screen.blit(player.image(), (int((player.x - camera_x) * TILE_WIDTH), int((player.y - camera_y) * TILE_HEIGHT)))
         for bullet in player.bullets:
             bullet.recalculate()
-            if not bullet.finished():
-                screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH), int((bullet.y - camera_y) * TILE_HEIGHT)))
+            screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH), int((bullet.y - camera_y) * TILE_HEIGHT)))
 
         # debug text
-        text = myfont.render('{} x {}'.format(camera_x, camera_y), False, (0, 0, 0))
+        text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
         screen.blit(text, (10, 10))
 
         # render and limit fps to 40
