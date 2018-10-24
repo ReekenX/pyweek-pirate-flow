@@ -151,8 +151,8 @@ if __name__=='__main__':
     myfont = pygame.font.SysFont('Arial', 30)
 
     water = 0
-    game_over = False
-    while not game_over:
+    playing = False
+    while not playing:
         water += 2
         if water == 32: water = 0
         for x in range(-1, int(SCREEN_WIDTH / TILE_WIDTH) + 1):
@@ -182,7 +182,7 @@ if __name__=='__main__':
         # handle keypresses/gameplay
         for event in pygame.event.get():
             if event.type == pygame.locals.QUIT:
-                game_over = True
+                playing = True
             elif event.type == pygame.locals.KEYDOWN:
                 if event.key == pygame.K_DOWN:
                     camera.down()
