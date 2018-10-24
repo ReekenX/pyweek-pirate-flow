@@ -10,7 +10,20 @@ SCREEN_HEIGHT = 736
 TILE_WIDTH = 32
 TILE_HEIGHT = 32
 
-class World(object):
+
+class Player(object):
+    def load_file(self, filename):
+        parser = configparser.ConfigParser()
+        parser.read(filename)
+        self.x, self.y = parser.get("player", "coords").split(",")
+        self.x = int(self.x)
+        self.y = int(self.y)
+
+    def image(self):
+        return pygame.image.load('./data/sprites/player-ship1.png')
+
+
+class Camera(object):
     def __init__(self, world_width, world_height):
         self.x = 0
         self.y = 0
@@ -47,8 +60,8 @@ class Level(object):
         # read all available objects configurations
         keys = {}
         for section in parser.sections():
-            if len(section) == 1:
-                desc = dict(parser.items(section))
+            desc = dict(parser.items(section))
+            if 'name' in desc:
                 keys[section] = desc
 
         # save map resolution
@@ -122,8 +135,12 @@ if __name__=='__main__':
     level = Level()
     level.load_file('./data/levels/1.map')
 
+    # load player ship configuration
+    player = Player()
+    player.load_file('./data/levels/1.map')
+
     # load screen configuration
-    world = World(level.width * TILE_WIDTH - SCREEN_WIDTH, level.height * TILE_HEIGHT - SCREEN_HEIGHT)
+    camera = Camera(level.width * TILE_WIDTH - SCREEN_WIDTH, level.height * TILE_HEIGHT - SCREEN_HEIGHT)
 
     # get background tile - water
     water_tile = pygame.image.load('./data/sprites/water.png')
@@ -141,13 +158,19 @@ if __name__=='__main__':
                 # render floating water - background layer
                 screen.blit(water_tile, (x * TILE_WIDTH + water, y * TILE_HEIGHT + water))
 
+                camera_x = int(camera.x / TILE_WIDTH)
+                camera_y = int(camera.y / TILE_HEIGHT)
+
                 # render tiles
-                tile = level.get_tile(x + int(world.x / TILE_WIDTH), y + int(world.y / TILE_HEIGHT))
+                tile = level.get_tile(x + camera_x, y + camera_y)
                 if tile['name'] != 'water':
                     screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
+                # render player
+                screen.blit(player.image(), (int((player.x - camera_x) * TILE_WIDTH), int((player.y - camera_y) * TILE_HEIGHT)))
+
                 # debug text
-                text = myfont.render('{} x {}'.format(world.x, world.y), False, (0, 0, 0))
+                text = myfont.render('{} x {}'.format(camera_x, camera_y), False, (0, 0, 0))
                 screen.blit(text, (10, 10))
 
         # render and limit fps to 40
@@ -160,10 +183,10 @@ if __name__=='__main__':
                 game_over = True
             elif event.type == pygame.locals.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    world.down()
+                    camera.down()
                 elif event.key == pygame.K_UP:
-                    world.up()
+                    camera.up()
                 elif event.key == pygame.K_LEFT:
-                    world.left()
+                    camera.left()
                 elif event.key == pygame.K_RIGHT:
-                    world.right()
+                    camera.right()
