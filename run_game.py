@@ -10,10 +10,32 @@ SCREEN_HEIGHT = 736
 TILE_WIDTH = 32
 TILE_HEIGHT = 32
 
+class Bullet(object):
+    def __init__(self, x, y, position):
+        self.start_x = x
+        self.start_y = y
+        self.x = x
+        self.y = y
+        self.position = position
+        self.sprite = pygame.image.load('./data/sprites/canon.png')
+
+    def image(self):
+        return self.sprite
+
+    def finished(self):
+        return abs(self.start_x - self.x) > 10 or abs(self.start_y - self.y) > 10
+
+    def recalculate(self):
+        if self.position == 'up': self.y -= 1
+        if self.position == 'down': self.y += 1
+        if self.position == 'right': self.x += 1
+        if self.position == 'left': self.x -= 1
+
 
 class Player(object):
     def __init__(self, level):
         self.level = level
+        self.bullets = []
 
     def load_file(self, filename):
         parser = configparser.ConfigParser()
@@ -23,7 +45,7 @@ class Player(object):
         self.y = int(self.y)
         self.level = level
         self.position = 'down'
-        self.down_image = pygame.image.load('./data/sprites/player-ship1.png')
+        self.down_image = pygame.image.load('./data/sprites/player.png')
 
     def image(self):
         if self.position == 'right':
@@ -66,6 +88,9 @@ class Player(object):
             return True
         else:
             return False
+
+    def fire(self):
+        self.bullets.append(Bullet(self.x, self.y, self.position))
 
 
 class Camera(object):
@@ -213,12 +238,16 @@ if __name__=='__main__':
                 if tile['name'] != 'water':
                     screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
-                # render player
-                screen.blit(player.image(), (int((player.x - camera_x) * TILE_WIDTH), int((player.y - camera_y) * TILE_HEIGHT)))
+        # render player
+        screen.blit(player.image(), (int((player.x - camera_x) * TILE_WIDTH), int((player.y - camera_y) * TILE_HEIGHT)))
+        for bullet in player.bullets:
+            bullet.recalculate()
+            if not bullet.finished():
+                screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH), int((bullet.y - camera_y) * TILE_HEIGHT)))
 
-                # debug text
-                text = myfont.render('{} x {}'.format(camera_x, camera_y), False, (0, 0, 0))
-                screen.blit(text, (10, 10))
+        # debug text
+        text = myfont.render('{} x {}'.format(camera_x, camera_y), False, (0, 0, 0))
+        screen.blit(text, (10, 10))
 
         # render and limit fps to 40
         pygame.display.flip()
@@ -241,3 +270,5 @@ if __name__=='__main__':
                 elif event.key == pygame.K_RIGHT:
                     if player.right():
                         camera.right()
+                elif event.key == pygame.K_SPACE:
+                    player.fire()
