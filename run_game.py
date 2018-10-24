@@ -12,15 +12,60 @@ TILE_HEIGHT = 32
 
 
 class Player(object):
+    def __init__(self, level):
+        self.level = level
+
     def load_file(self, filename):
         parser = configparser.ConfigParser()
         parser.read(filename)
         self.x, self.y = parser.get("player", "coords").split(",")
         self.x = int(self.x)
         self.y = int(self.y)
+        self.level = level
+        self.position = 'down'
+        self.down_image = pygame.image.load('./data/sprites/player-ship1.png')
 
     def image(self):
-        return pygame.image.load('./data/sprites/player-ship1.png')
+        if self.position == 'right':
+            return pygame.transform.rotate(self.down_image, 90)
+        if self.position == 'up':
+            return pygame.transform.rotate(self.down_image, 180)
+        if self.position == 'left':
+            return pygame.transform.rotate(self.down_image, 270)
+        else:
+            return self.down_image
+
+    def up(self):
+        if level.get_tile(self.x, self.y - 1)['name'] != 'sand' and level.get_tile(self.x, self.y - 2)['name'] != 'sand':
+            self.y -= 1
+            self.position = 'up'
+            return True
+        else:
+            return False
+
+    def down(self):
+        if level.get_tile(self.x, self.y + 1)['name'] != 'sand' and level.get_tile(self.x, self.y + 2)['name'] != 'sand':
+            self.y += 1
+            self.position = 'down'
+            return True
+        else:
+            return False
+
+    def left(self):
+        if level.get_tile(self.x - 1, self.y)['name'] != 'sand' and level.get_tile(self.x - 2, self.y)['name'] != 'sand':
+            self.x -= 1
+            self.position = 'left'
+            return True
+        else:
+            return False
+
+    def right(self):
+        if level.get_tile(self.x + 1, self.y)['name'] != 'sand' and level.get_tile(self.x + 2, self.y)['name'] != 'sand':
+            self.x += 1
+            self.position = 'right'
+            return True
+        else:
+            return False
 
 
 class Camera(object):
@@ -138,7 +183,7 @@ if __name__=='__main__':
     level.load_file('./data/levels/1.map')
 
     # load player ship configuration
-    player = Player()
+    player = Player(level)
     player.load_file('./data/levels/1.map')
 
     # load screen configuration
@@ -185,10 +230,14 @@ if __name__=='__main__':
                 playing = False
             elif event.type == pygame.locals.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    camera.down()
+                    if player.down():
+                        camera.down()
                 elif event.key == pygame.K_UP:
-                    camera.up()
+                    if player.up():
+                        camera.up()
                 elif event.key == pygame.K_LEFT:
-                    camera.left()
+                    if player.left():
+                        camera.left()
                 elif event.key == pygame.K_RIGHT:
-                    camera.right()
+                    if player.right():
+                        camera.right()
