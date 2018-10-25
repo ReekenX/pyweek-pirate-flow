@@ -18,7 +18,7 @@ class Bullet(object):
         self.x = x
         self.y = y
         self.position = position
-        self.sprite = pygame.image.load('./data/sprites/canon.png')
+        self.sprite = pygame.image.load('./data/sprites/canon.png').convert_alpha()
 
     def image(self):
         return self.sprite
@@ -47,7 +47,7 @@ class Player(object):
         self.level = level
         self.position = 'down'
         self.down_image = image = pygame.transform.scale(
-                pygame.image.load('./data/sprites/player.png'),
+                pygame.image.load('./data/sprites/player.png').convert_alpha(),
                 (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
     def image(self):
@@ -194,7 +194,7 @@ class Level(object):
 
         # cache image for quick reuse
         image = pygame.transform.scale(
-                pygame.image.load('./data/sprites/' + name + '.png'),
+                pygame.image.load('./data/sprites/' + name + '.png').convert_alpha(),
                 (TILE_WIDTH, TILE_HEIGHT))
         self.images[name] = image
         return self.images[name]
@@ -212,7 +212,7 @@ if __name__=='__main__':
     pygame.font.init()
     pygame.display.set_caption('Pirate Flow - Pygame #26')
     pygame.key.set_repeat(500, 100)
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF, 32)
     screen.fill((255, 255, 255))
 
     # load level configuration
@@ -227,8 +227,11 @@ if __name__=='__main__':
     camera = Camera(level.width * TILE_WIDTH - SCREEN_WIDTH, level.height * TILE_HEIGHT - SCREEN_HEIGHT)
 
     # get background tile - water
-    water_tile = pygame.image.load('./data/sprites/water.png')
+    water_tile = pygame.image.load('./data/sprites/water.png').convert_alpha()
     water_tile = pygame.transform.scale(water_tile, (TILE_WIDTH, TILE_HEIGHT))
+
+    sandbg = pygame.image.load('./data/sprites/sandbg.png').convert_alpha()
+    sandbg = pygame.transform.scale(sandbg, (TILE_WIDTH, TILE_HEIGHT))
 
     myfont = pygame.font.SysFont('Arial', 30)
 
@@ -248,6 +251,8 @@ if __name__=='__main__':
                 # render tiles
                 tile = level.get_tile(x + camera_x, y + camera_y)
                 if tile['name'] != 'water':
+                    if tile['name'] == 'sand':
+                        screen.blit(sandbg, (x * TILE_WIDTH, y * TILE_HEIGHT))
                     screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
