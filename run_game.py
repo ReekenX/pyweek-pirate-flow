@@ -181,6 +181,10 @@ class Level(object):
                 elif hashed == 'wssw': self.map[y][x]['image'] = 'sand6'
                 elif hashed == 'ssgw': self.map[y][x]['image'] = 'sand7'
                 elif hashed == 'swsw': self.map[y][x]['image'] = 'sand8'
+                elif hashed == 'gsgs': self.map[y][x]['image'] = 'sand9'
+                elif hashed == 'gssg': self.map[y][x]['image'] = 'sand10'
+                elif hashed == 'sgsg': self.map[y][x]['image'] = 'sand11'
+                elif hashed == 'sggs': self.map[y][x]['image'] = 'sand12'
                 else: self.map[y][x]['image'] = 'water'
 
     def get_sprite(self, name):
@@ -255,8 +259,8 @@ if __name__=='__main__':
             screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) + half_bullet_size, int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) + half_bullet_size))
 
         # debug text
-        text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
-        screen.blit(text, (10, 10))
+        #  text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
+        #  screen.blit(text, (10, 10))
 
         # render and limit fps to 40
         pygame.display.flip()
