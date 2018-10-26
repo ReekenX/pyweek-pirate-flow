@@ -166,19 +166,37 @@ class Bullet(object):
         self.y = y
         self.max_distance = max_distance
         self.position = position
-        self.sprite = pygame.transform.scale(pygame.image.load('./data/sprites/bullet.png').convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))
+        self.sprite = pygame.image.load('./data/sprites/bullet.png').convert_alpha()
+        self.increase_size = 5
+        self.increase_step = 2.5
 
     def image(self):
-        return self.sprite
+        # make bullet animation - in the middle of distance bullet should be bigger
+        if self.percents_traveled() < 50:
+            self.increase_size += self.increase_step
+        else:
+            self.increase_size -= self.increase_step
+
+        size = (TILE_WIDTH * 2 + int(self.increase_size), TILE_HEIGHT * 2 + int(self.increase_size))
+        return pygame.transform.scale(pygame.image.load('./data/sprites/bullet.png').convert_alpha(), size)
+
+    def percents_traveled(self):
+        if self.position == 'up' or self.position == 'down':
+            current_distance = abs(self.start_y - self.y)
+            return int(current_distance * 100 / self.max_distance)
+
+        if self.position == 'right' or self.position == 'left':
+            current_distance = abs(self.start_x - self.x)
+            return int(current_distance * 100 / self.max_distance) % 100
 
     def finished(self):
         return abs(self.start_x - self.x) > self.max_distance or abs(self.start_y - self.y) > self.max_distance
 
     def move(self):
-        if self.position == 'up': self.y -= 0.7
-        if self.position == 'down': self.y += 0.7
-        if self.position == 'right': self.x += 0.7
-        if self.position == 'left': self.x -= 0.7
+        if self.position == 'up': self.y -= 0.6
+        if self.position == 'down': self.y += 0.6
+        if self.position == 'right': self.x += 0.6
+        if self.position == 'left': self.x -= 0.6
 
     def reaches(self, obj):
         return math.sqrt((self.x - obj.x) ** 2 + (self.y - obj.y)**2) < 1
