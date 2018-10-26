@@ -207,6 +207,8 @@ class Player(object):
             self.dead_timer -= self.game.clock_elapsed
 
     def up(self):
+        if self.position == 'down': return False
+
         if self.game.level.get_tile(self.x, self.y - 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y - 2)['name'] != 'sand':
             self.y -= 1
             self.position = 'up'
@@ -215,6 +217,8 @@ class Player(object):
             return False
 
     def down(self):
+        if self.position == 'up': return False
+
         if self.game.level.get_tile(self.x, self.y + 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y + 2)['name'] != 'sand':
             self.y += 1
             self.position = 'down'
@@ -223,6 +227,8 @@ class Player(object):
             return False
 
     def left(self):
+        if self.position == 'right': return False
+
         if self.game.level.get_tile(self.x - 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x - 2, self.y)['name'] != 'sand':
             self.x -= 1
             self.position = 'left'
@@ -231,6 +237,8 @@ class Player(object):
             return False
 
     def right(self):
+        if self.position == 'left': return False
+
         if self.game.level.get_tile(self.x + 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x + 2, self.y)['name'] != 'sand':
             self.x += 1
             self.position = 'right'
