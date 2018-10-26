@@ -34,12 +34,21 @@ class Game(object):
 
 
 class Cannon(object):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, position):
         self.game = game
         self.x = x
         self.y = y
-        self.max_distance = 10
-        self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
+        self.position = position
+        self.max_distance = 6
+        if self.position == 'left':
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 180)
+        elif self.position == 'right':
+            self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
+        elif self.position == 'up':
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 90)
+        elif self.position == 'down':
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 270)
+
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
 
@@ -55,7 +64,7 @@ class Cannon(object):
 
         if self.should_fire() and self.fire_timer <= 0:
             self.fire_timer = self.fire_frequency
-            self.game.bullets.append(Bullet(self.x, self.y, 'down'))
+            self.game.bullets.append(Bullet(self.x, self.y, self.position))
 
 
 class Explosion(object):
@@ -250,14 +259,25 @@ class Level(object):
 
                 tile = self.get_real_tile(x, y)
                 if tile['name'] == 'cannon':
-                    self.game.cannons.append(Cannon(self.game, x, y))
+                    # fint closest water source so we know where cannon is pointing at
+                    position = None
+                    if self.get_tile(x - 3, y)['name'] == 'water': position = 'left'
+                    if self.get_tile(x + 3, y)['name'] == 'water': position = 'right'
+                    if self.get_tile(x, y - 3)['name'] == 'water': position = 'up'
+                    if self.get_tile(x, y + 3)['name'] == 'water': position = 'down'
+                    self.game.cannons.append(Cannon(self.game, x, y, position))
+
+                    # replace cannon in the map with water
                     self.map[y][x] = self.keys[tile['act_as']]
                     self.map[y][x]['image'] = self.keys[tile['act_as']]['name']
                     continue
                 elif tile['name'] == 'player':
+                    # set player coordinates from the map
+                    self.game.player.set_position(x, y)
+
+                    # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
                     self.map[y][x]['image'] = 'water'
-                    self.game.player.set_position(x, y)
 
                 name = self.get_tile(x, y)['name']
                 left = self.get_tile(x - 1, y)['name']
