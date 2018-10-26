@@ -15,6 +15,7 @@ TILE_HEIGHT = 32
 class Game(object):
     def __init__(self):
         # enemy objects
+        self.bullets = []
         self.cannons = []
         self.explosions = []
 
@@ -27,10 +28,13 @@ class Game(object):
 
 
 class Cannon(object):
-    def __init__(self, x, y):
+    def __init__(self, game, x, y):
         self.x = x
         self.y = y
         self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
+
+    def should_fire(self):
+        return True
 
     def image(self):
         return self.sprite
@@ -71,7 +75,7 @@ class Bullet(object):
     def finished(self):
         return abs(self.start_x - self.x) > self.max_distance or abs(self.start_y - self.y) > self.max_distance
 
-    def recalculate(self):
+    def move(self):
         if self.position == 'up': self.y -= 1
         if self.position == 'down': self.y += 1
         if self.position == 'right': self.x += 1
@@ -81,7 +85,6 @@ class Bullet(object):
 class Player(object):
     def __init__(self, game):
         self.game = game
-        self.bullets = []
         self.x = 0
         self.y = 0
         self.position = 'down'
@@ -135,14 +138,14 @@ class Player(object):
         else:
             return False
 
-    def recalculate(self):
-        for bullet in self.bullets:
-            if bullet.finished():
-                self.game.explosions.append(Explosion(bullet.x, bullet.y))
-                self.bullets.remove(bullet)
+    #  def recalculate(self):
+        #  for bullet in self.bullets:
+            #  if bullet.finished():
+                #  self.game.explosions.append(Explosion(bullet.x, bullet.y))
+                #  self.bullets.remove(bullet)
 
     def fire(self):
-        self.bullets.append(Bullet(self.x, self.y, self.position))
+        self.game.bullets.append(Bullet(self.x, self.y, self.position))
 
 
 class Camera(object):
@@ -210,7 +213,7 @@ class Level(object):
 
                 tile = self.get_real_tile(x, y)
                 if tile['name'] == 'cannon':
-                    self.game.cannons.append(Cannon(x, y))
+                    self.game.cannons.append(Cannon(self.game, x, y))
                     self.map[y][x] = self.keys[tile['act_as']]
                     self.map[y][x]['image'] = self.keys[tile['act_as']]['name']
                     continue
@@ -308,13 +311,16 @@ if __name__=='__main__':
                     screen.blit(game.level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
-        game.player.recalculate()
         image = game.player.image()
         screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
-        for bullet in game.player.bullets:
-            bullet.recalculate()
-            image = bullet.image()
-            screen.blit(image, (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+        for bullet in game.bullets:
+            bullet.move()
+            if bullet.finished():
+                game.explosions.append(Explosion(bullet.x, bullet.y))
+                game.bullets.remove(bullet)
+            else:
+                image = bullet.image()
+                screen.blit(image, (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         for explosion in game.explosions:
             if explosion.finished():
