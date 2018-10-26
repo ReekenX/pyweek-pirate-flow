@@ -81,6 +81,9 @@ class Cannon(object):
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
 
+    def distance_from_player(self):
+        return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2)
+
     def should_fire(self):
         # no need to fire if game has not started yet
         if not self.game.started:
@@ -91,7 +94,7 @@ class Cannon(object):
             return False
 
         # calculate distance between player and canon and if it's close enough - fire
-        return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2) < self.max_distance + 2
+        return self.distance_from_player() < self.max_distance + 2
 
     def image(self):
         return self.sprite
@@ -102,7 +105,7 @@ class Cannon(object):
 
         if self.should_fire() and self.fire_timer <= 0:
             self.fire_timer = self.fire_frequency
-            self.game.bullets.append(Bullet(self.x, self.y, self.position, self.max_distance))
+            self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
 
 
 class Explosion(object):
