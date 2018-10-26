@@ -70,6 +70,8 @@ class Cannon(object):
         self.y = y
         self.position = position
         self.max_distance = 6
+
+        # rotate canon based on it's position
         if self.position == 'left':
             self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 180)
         elif self.position == 'right':
@@ -173,10 +175,10 @@ class Bullet(object):
         return abs(self.start_x - self.x) > self.max_distance or abs(self.start_y - self.y) > self.max_distance
 
     def move(self):
-        if self.position == 'up': self.y -= 1
-        if self.position == 'down': self.y += 1
-        if self.position == 'right': self.x += 1
-        if self.position == 'left': self.x -= 1
+        if self.position == 'up': self.y -= 0.7
+        if self.position == 'down': self.y += 0.7
+        if self.position == 'right': self.x += 0.7
+        if self.position == 'left': self.x -= 0.7
 
     def reaches(self, obj):
         return math.sqrt((self.x - obj.x) ** 2 + (self.y - obj.y)**2) < 1
