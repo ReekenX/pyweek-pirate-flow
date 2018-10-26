@@ -26,6 +26,11 @@ class Game(object):
         # load level/map configuration
         self.level = Level(self)
         self.level.load_file('./data/levels/1.map')
+        self.clock = pygame.time.Clock()
+
+    def tick(self):
+        self.clock_elapsed = game.clock.tick(50)
+        return self.clock_elapsed
 
 
 class Cannon(object):
@@ -35,6 +40,8 @@ class Cannon(object):
         self.y = y
         self.max_distance = 10
         self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
+        self.fire_timer = 0
+        self.fire_frequency = 2000 # in miliseconds
 
     def should_fire(self):
         return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2) < self.max_distance
@@ -43,7 +50,11 @@ class Cannon(object):
         return self.sprite
 
     def move(self):
-        if self.should_fire():
+        if self.fire_timer > 0:
+            self.fire_timer -= self.game.clock_elapsed
+
+        if self.should_fire() and self.fire_timer <= 0:
+            self.fire_timer = self.fire_frequency
             self.game.bullets.append(Bullet(self.x, self.y, 'down'))
 
 
@@ -102,6 +113,8 @@ class Player(object):
         self.down_image = image = pygame.transform.scale(
                 pygame.image.load('./data/sprites/player.png').convert_alpha(),
                 (TILE_WIDTH * 2, TILE_HEIGHT * 2))
+        self.fire_timer = 0
+        self.fire_frequency = 1000 # in miliseconds
 
     def set_position(self, x, y):
         self.x = x
@@ -116,6 +129,10 @@ class Player(object):
             return pygame.transform.rotate(self.down_image, 270)
         else:
             return self.down_image
+
+    def move(self):
+        if self.fire_timer > 0:
+            self.fire_timer -= self.game.clock_elapsed
 
     def up(self):
         if self.game.level.get_tile(self.x, self.y - 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y - 2)['name'] != 'sand':
@@ -150,7 +167,9 @@ class Player(object):
             return False
 
     def fire(self):
-        self.game.bullets.append(Bullet(self.x, self.y, self.position))
+        if self.fire_timer <= 0:
+            self.game.bullets.append(Bullet(self.x, self.y, self.position))
+            self.fire_timer = self.fire_frequency
 
 
 class Camera(object):
@@ -276,7 +295,7 @@ if __name__=='__main__':
     pygame.init()
     pygame.font.init()
     pygame.display.set_caption('Pirate Flow - Pygame #26')
-    pygame.key.set_repeat(500, 100)
+    pygame.key.set_repeat(100, 100)
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF, 32)
     screen.fill((255, 255, 255))
 
@@ -316,8 +335,11 @@ if __name__=='__main__':
                     screen.blit(game.level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
+        game.player.move()
         image = game.player.image()
         screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+
+        # render bullets and see if somebody hit somebody
         for bullet in game.bullets:
             bullet.move()
             if bullet.finished():
@@ -332,6 +354,7 @@ if __name__=='__main__':
                 image = bullet.image()
                 screen.blit(image, (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
+        # render bullet explosions
         for explosion in game.explosions:
             if explosion.finished():
                 game.explosions.remove(explosion)
@@ -339,6 +362,7 @@ if __name__=='__main__':
                 image = explosion.image()
                 screen.blit(image, (int((explosion.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((explosion.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
+        # render first enemy group - cannons
         for cannon in game.cannons:
             cannon.move()
             image = cannon.image()
@@ -350,7 +374,7 @@ if __name__=='__main__':
 
         # render and limit fps to 50
         pygame.display.flip()
-        pygame.time.Clock().tick(50)
+        game.tick()
 
         # handle keypresses/gameplay
         for event in pygame.event.get():
