@@ -31,6 +31,7 @@ class Game(object):
         self.clock = pygame.time.Clock()
 
         # fonts used in the game
+        self.small_font = pygame.font.Font('./data/fonts/font.ttf', 12)
         self.regular_font = pygame.font.Font('./data/fonts/font.ttf', 16)
         self.title_font = pygame.font.Font('./data/fonts/font.ttf', 64)
 
@@ -208,7 +209,7 @@ class Player(object):
         self.x = 0
         self.y = 0
         self.position = 'down'
-        self.energy = 2
+        self.energy = 7
         self.max_energy = 7
         self.down_image = image = pygame.transform.scale(
                 pygame.image.load('./data/sprites/player.png').convert_alpha(),
@@ -472,6 +473,11 @@ if __name__=='__main__':
     sandbg = pygame.image.load('./data/sprites/sandbg.png').convert_alpha()
     sandbg = pygame.transform.scale(sandbg, (TILE_WIDTH, TILE_HEIGHT))
 
+    panel_start = pygame.image.load('./data/sprites/panel-start.png').convert_alpha()
+    panel_body = pygame.image.load('./data/sprites/panel-body.png').convert_alpha()
+    panel_end = pygame.image.load('./data/sprites/panel-end.png').convert_alpha()
+    star = pygame.image.load('./data/sprites/star.png').convert_alpha()
+
     myfont = pygame.font.SysFont('Arial', 30)
 
     water = 0
@@ -570,15 +576,24 @@ if __name__=='__main__':
 
         # informational text
         if game.started:
+            screen.blit(panel_start, (10, 10))
+            for i in range(1, 210, 4):
+                screen.blit(panel_body, (10 + i, 10))
+            screen.blit(panel_end, (10 + i, 10))
+
             # draw shadow HEALTH text
-            health_text = 'HEALTH: {} / {}'.format(game.player.energy, game.player.max_energy)
-            (width, height) = game.regular_font.size(health_text)
-            text = game.regular_font.render(health_text, False, (255, 255, 255))
-            screen.blit(text, (15, 15))
+            health_text = 'HEALTH:'
+            (width, height) = game.small_font.size(health_text)
+            text = game.small_font.render(health_text, False, (0, 0, 0))
+            screen.blit(text, (21, 17))
+
+            # draw energy stars
+            for energy in range(0, game.player.energy):
+                screen.blit(star, (width + 30 + energy * 20, 15))
 
             # draw normal HEALTH text
-            text = game.regular_font.render(health_text, False, (0, 0, 0))
-            screen.blit(text, (15 + 1, 15 + 1))
+            text = game.small_font.render(health_text, False, (255, 255, 255))
+            screen.blit(text, (20, 16))
 
             # draw shadow SCORE text
             score_text = 'Score: {}'.format(game.player.score)
