@@ -549,6 +549,12 @@ if __name__=='__main__':
                             game.achievements.cannons_killed += 1
                             game.achievements.cannons_goal = game.achievements.cannons_killed >= 6
 
+                            # play achievement unlocked song
+                            if game.achievements.cannons_killed == 6:
+                                sound = pygame.mixer.Sound('./data/music/achievement.wav')
+                                sound.set_volume(0.3)
+                                sound.play()
+
                             sound = pygame.mixer.Sound('./data/music/explosion.wav')
                             sound.set_volume(0.5)
                             sound.play()
@@ -574,8 +580,8 @@ if __name__=='__main__':
         # render special items - hearts
         for heart in game.hearts:
             if heart.reaches(game.player):
-                # play powerup song
-                sound = pygame.mixer.Sound('./data/music/powerup.wav')
+                # play healt song
+                sound = pygame.mixer.Sound('./data/music/healt.wav')
                 sound.set_volume(0.1)
                 sound.play()
 
