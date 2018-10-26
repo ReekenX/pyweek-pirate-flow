@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import os
+import math
 import pygame
 import pygame.locals
 import configparser
@@ -29,15 +30,21 @@ class Game(object):
 
 class Cannon(object):
     def __init__(self, game, x, y):
+        self.game = game
         self.x = x
         self.y = y
+        self.max_distance = 10
         self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
 
     def should_fire(self):
-        return True
+        return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2) < self.max_distance
 
     def image(self):
         return self.sprite
+
+    def move(self):
+        if self.should_fire():
+            self.game.bullets.append(Bullet(self.x, self.y, 'down'))
 
 
 class Explosion(object):
@@ -137,12 +144,6 @@ class Player(object):
             return True
         else:
             return False
-
-    #  def recalculate(self):
-        #  for bullet in self.bullets:
-            #  if bullet.finished():
-                #  self.game.explosions.append(Explosion(bullet.x, bullet.y))
-                #  self.bullets.remove(bullet)
 
     def fire(self):
         self.game.bullets.append(Bullet(self.x, self.y, self.position))
@@ -330,6 +331,7 @@ if __name__=='__main__':
                 screen.blit(image, (int((explosion.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((explosion.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         for cannon in game.cannons:
+            cannon.move()
             image = cannon.image()
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
