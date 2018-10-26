@@ -28,6 +28,8 @@ class Game(object):
         self.level.load_file('./data/levels/1.map')
         self.clock = pygame.time.Clock()
 
+        self.font = pygame.font.Font('./data/fonts/font.ttf', 16)
+
     def tick(self):
         self.clock_elapsed = game.clock.tick(50)
         return self.clock_elapsed
@@ -326,7 +328,6 @@ class Level(object):
 if __name__=='__main__':
     # init pygame
     pygame.init()
-    pygame.font.init()
     pygame.display.set_caption('Pirate Flow - Pygame #26')
     pygame.key.set_repeat(100, 100)
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF, 32)
@@ -407,8 +408,8 @@ if __name__=='__main__':
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # debug text
-        #  text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
-        #  screen.blit(text, (10, 10))
+        text = game.font.render('{} bullets'.format(game.player.energy), False, (0, 0, 0))
+        screen.blit(text, (10, 10))
 
         # render and limit fps to 50
         pygame.display.flip()
