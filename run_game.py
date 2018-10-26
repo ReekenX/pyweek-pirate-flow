@@ -478,6 +478,8 @@ if __name__=='__main__':
     panel_end = pygame.image.load('./data/sprites/panel-end.png').convert_alpha()
     star = pygame.image.load('./data/sprites/star.png').convert_alpha()
 
+    achievements = pygame.image.load('./data/sprites/achievements.png').convert_alpha()
+
     myfont = pygame.font.SysFont('Arial', 30)
 
     water = 0
@@ -599,11 +601,24 @@ if __name__=='__main__':
             score_text = 'Score: {}'.format(game.player.score)
             (width, height) = game.regular_font.size(score_text)
             text = game.regular_font.render(score_text, False, (255, 255, 255))
-            screen.blit(text, (SCREEN_WIDTH - width - 21, 21))
+            screen.blit(text, (SCREEN_WIDTH - width - 20, 21))
 
             # draw normal SCORE text
             text = game.regular_font.render(score_text, False, (0, 0, 0))
-            screen.blit(text, (SCREEN_WIDTH - width - 20, 20))
+            screen.blit(text, (SCREEN_WIDTH - width - 21, 20))
+
+           #  draw shadow PRESS I text
+            score_text = 'Press T'
+            (width, height) = game.regular_font.size(score_text)
+            text = game.regular_font.render(score_text, False, (0, 0, 0))
+            screen.blit(text, (SCREEN_WIDTH - width - 20, SCREEN_HEIGHT - 40))
+
+            #  draw normal PRESS I text
+            text = game.regular_font.render(score_text, False, (255, 255, 255))
+            screen.blit(text, (SCREEN_WIDTH - width - 21, SCREEN_HEIGHT - 41))
+
+            # draw achievements box
+            screen.blit(achievements, (SCREEN_WIDTH - 90, SCREEN_HEIGHT - 110))
 
         # draw text saying that player lost the game
         if game.player.has_lost():
