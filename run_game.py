@@ -576,24 +576,24 @@ if __name__=='__main__':
 
         # informational text
         if game.started:
-            screen.blit(panel_start, (10, 10))
+            screen.blit(panel_start, (20, SCREEN_HEIGHT - 50))
             for i in range(1, 210, 4):
-                screen.blit(panel_body, (10 + i, 10))
-            screen.blit(panel_end, (10 + i, 10))
+                screen.blit(panel_body, (20 + i, SCREEN_HEIGHT - 50))
+            screen.blit(panel_end, (20 + i, SCREEN_HEIGHT - 50))
 
             # draw shadow HEALTH text
             health_text = 'HEALTH:'
             (width, height) = game.small_font.size(health_text)
             text = game.small_font.render(health_text, False, (0, 0, 0))
-            screen.blit(text, (21, 17))
-
-            # draw energy stars
-            for energy in range(0, game.player.energy):
-                screen.blit(star, (width + 30 + energy * 20, 15))
+            screen.blit(text, (28, SCREEN_HEIGHT - 44))
 
             # draw normal HEALTH text
             text = game.small_font.render(health_text, False, (255, 255, 255))
-            screen.blit(text, (20, 16))
+            screen.blit(text, (27, SCREEN_HEIGHT - 45))
+
+            # draw energy stars
+            for energy in range(0, game.player.energy):
+                screen.blit(star, (width + 37 + energy * 19, SCREEN_HEIGHT - 45))
 
             # draw shadow SCORE text
             score_text = 'Score: {}'.format(game.player.score)
