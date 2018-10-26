@@ -168,7 +168,7 @@ class Bullet(object):
         self.position = position
         self.sprite = pygame.image.load('./data/sprites/bullet.png').convert_alpha()
         self.increase_size = 5
-        self.increase_step = 2.5
+        self.increase_step = 3
 
     def image(self):
         # make bullet animation - in the middle of distance bullet should be bigger
@@ -177,7 +177,7 @@ class Bullet(object):
         else:
             self.increase_size -= self.increase_step
 
-        size = (TILE_WIDTH * 2 + int(self.increase_size), TILE_HEIGHT * 2 + int(self.increase_size))
+        size = (int(TILE_WIDTH * 2.5) + int(self.increase_size), int(TILE_HEIGHT * 2.5) + int(self.increase_size))
         return pygame.transform.scale(pygame.image.load('./data/sprites/bullet.png').convert_alpha(), size)
 
     def percents_traveled(self):
