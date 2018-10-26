@@ -21,8 +21,11 @@ class Achievements(object):
         self.cannons_killed = 0
 
         self.distance_reached = False
-        self.distance_goal = 500
+        self.distance_goal = 700
         self.distance_traveled = 0
+
+        self.score_reached = False
+        self.score_goal = 3000
 
 
 class Game(object):
@@ -509,6 +512,8 @@ if __name__=='__main__':
     shoot = pygame.transform.scale(shoot, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
     world = pygame.image.load('./data/sprites/world.png').convert_alpha()
     world = pygame.transform.scale(world, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
+    medal = pygame.image.load('./data/sprites/medal.png').convert_alpha()
+    medal = pygame.transform.scale(medal, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
     myfont = pygame.font.SysFont('Arial', 30)
 
@@ -563,6 +568,14 @@ if __name__=='__main__':
                     for cannon in game.cannons:
                         if bullet.reaches(cannon):
                             game.player.score += 100
+                            if not game.achievements.score_reached and game.player.score > game.achievements.score_goal:
+                                game.achievements.score_reached = True
+
+                                # play another achievement reached music
+                                sound = pygame.mixer.Sound('./data/music/achievement.wav')
+                                sound.set_volume(0.3)
+                                sound.play()
+
                             missed = False
                             game.cannons.remove(cannon)
                             game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
@@ -606,6 +619,17 @@ if __name__=='__main__':
                 sound = pygame.mixer.Sound('./data/music/healt.wav')
                 sound.set_volume(0.2)
                 sound.play()
+
+                game.player.score += 50
+
+                # check to see if player has not reached a goal yet
+                if not game.achievements.score_reached and game.player.score > game.achievements.score_goal:
+                    game.achievements.score_reached = True
+
+                    # play another achievement reached music
+                    sound = pygame.mixer.Sound('./data/music/achievement.wav')
+                    sound.set_volume(0.3)
+                    sound.play()
 
                 # add health to the user
                 if game.player.energy < game.player.max_energy:
@@ -766,11 +790,11 @@ if __name__=='__main__':
                 screen.blit(world, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 80))
                 if game.achievements.distance_reached:
                     # draw shadow KILL CANNONS text
-                    text = game.big_font.render('Travel {} miles'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                    text = game.big_font.render('Travel {} miles'.format(game.achievements.distance_goal), False, (0, 0, 0))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 70))
 
                     # draw normal KILL CANNONS text
-                    text = game.big_font.render('Travel {} miles'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                    text = game.big_font.render('Travel {} miles'.format(game.achievements.distance_goal), False, (255, 255, 255))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 70))
 
                     # draw shadow KILL CANNONS text
@@ -796,6 +820,41 @@ if __name__=='__main__':
                     # draw normal KILL CANNONS text
                     text = game.small_font.render('Target not reached', False, (0, 0, 0))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 45))
+
+                screen.blit(medal, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 + 20))
+                if game.achievements.score_reached:
+                    # draw shadow REACH GOAL text
+                    text = game.big_font.render('Reach over {} score points'.format(game.achievements.score_goal), False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 + 30))
+
+                    # draw normal REACH GOAL text
+                    text = game.big_font.render('Reach over {} score points'.format(game.achievements.score_goal), False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 30))
+
+                    # draw shadow UNLOCKED text
+                    text = game.small_font.render('Unlocked!', False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 + 55))
+
+                    # draw normal UNLOCKED text
+                    text = game.small_font.render('Unlocked!', False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 55))
+                else:
+                    # draw shadow REACH POINTS text
+                    text = game.big_font.render('Reach over {} score points'.format(game.achievements.score_goal), False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 + 30))
+
+                    # draw normal REACH POINTS text
+                    text = game.big_font.render('Reach over {} score points'.format(game.achievements.score_goal), False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 30))
+
+                    # draw shadow GOAL PENDING text
+                    text = game.small_font.render('Target not reached', False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 + 55))
+
+                    # draw normal GOAL PENDING text
+                    text = game.small_font.render('Target not reached', False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 55))
+
 
 
         # render and limit fps to 50
