@@ -55,7 +55,12 @@ class Cannon(object):
         self.fire_frequency = 2000 # in miliseconds
 
     def should_fire(self):
-        return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2) < self.max_distance
+        # no need to fire when player is dead
+        if not self.game.player.is_alive:
+            return False
+
+        # calculate distance between player and canon and if it's close enough - fire
+        return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2) < self.max_distance + 2
 
     def image(self):
         return self.sprite
@@ -66,7 +71,7 @@ class Cannon(object):
 
         if self.should_fire() and self.fire_timer <= 0:
             self.fire_timer = self.fire_frequency
-            self.game.bullets.append(Bullet(self.x, self.y, self.position))
+            self.game.bullets.append(Bullet(self.x, self.y, self.position, self.max_distance))
 
 
 class Explosion(object):
@@ -102,12 +107,12 @@ class Explosion(object):
 
 
 class Bullet(object):
-    def __init__(self, x, y, position):
+    def __init__(self, x, y, position, max_distance):
         self.start_x = x
         self.start_y = y
         self.x = x
         self.y = y
-        self.max_distance = 8
+        self.max_distance = max_distance
         self.position = position
         self.sprite = pygame.transform.scale(pygame.image.load('./data/sprites/bullet.png').convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
@@ -133,12 +138,15 @@ class Player(object):
         self.x = 0
         self.y = 0
         self.position = 'down'
-        self.energy = 5
+        self.energy = 2
+        self.max_energy = 7
         self.down_image = image = pygame.transform.scale(
                 pygame.image.load('./data/sprites/player.png').convert_alpha(),
                 (TILE_WIDTH * 2, TILE_HEIGHT * 2))
         self.fire_timer = 0
         self.fire_frequency = 1000 # in miliseconds
+        self.is_alive = True
+        self.fire_distance = 10
 
     def set_position(self, x, y):
         self.x = x
@@ -192,7 +200,7 @@ class Player(object):
 
     def fire(self):
         if self.fire_timer <= 0:
-            self.game.bullets.append(Bullet(self.x, self.y, self.position))
+            self.game.bullets.append(Bullet(self.x, self.y, self.position, self.fire_distance))
             self.fire_timer = self.fire_frequency
 
 
@@ -369,9 +377,10 @@ if __name__=='__main__':
                     screen.blit(game.level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
-        game.player.move()
-        image = game.player.image()
-        screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+        if game.player.is_alive:
+            game.player.move()
+            image = game.player.image()
+            screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render bullets and see if somebody hit somebody
         for bullet in game.bullets:
@@ -380,6 +389,9 @@ if __name__=='__main__':
                 missed = True
                 if bullet.reaches(game.player):
                     missed = False
+                    game.player.energy -= 1
+                    if game.player.energy <= 0:
+                        game.player.is_alive = False
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'medium'))
                 else:
                     for cannon in game.cannons:
@@ -388,6 +400,8 @@ if __name__=='__main__':
                             game.cannons.remove(cannon)
                             game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
                             break # same bullet can't hit few items
+                if missed:
+                    game.explosions.append(Explosion(game, bullet.x, bullet.y, 'tiny'))
                 game.bullets.remove(bullet)
             else:
                 image = bullet.image()
@@ -408,7 +422,7 @@ if __name__=='__main__':
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # debug text
-        text = game.font.render('{} bullets'.format(game.player.energy), False, (0, 0, 0))
+        text = game.font.render('Life Score: {} / {}'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
         screen.blit(text, (10, 10))
 
         # render and limit fps to 50
@@ -420,17 +434,18 @@ if __name__=='__main__':
             if event.type == pygame.locals.QUIT:
                 playing = False
             elif event.type == pygame.locals.KEYDOWN:
-                if event.key == pygame.K_DOWN:
-                    if game.player.down():
-                        camera.down()
-                elif event.key == pygame.K_UP:
-                    if game.player.up():
-                        camera.up()
-                elif event.key == pygame.K_LEFT:
-                    if game.player.left():
-                        camera.left()
-                elif event.key == pygame.K_RIGHT:
-                    if game.player.right():
-                        camera.right()
-                elif event.key == pygame.K_SPACE:
-                    game.player.fire()
+                if game.player.is_alive:
+                    if event.key == pygame.K_DOWN:
+                        if game.player.down():
+                            camera.down()
+                    elif event.key == pygame.K_UP:
+                        if game.player.up():
+                            camera.up()
+                    elif event.key == pygame.K_LEFT:
+                        if game.player.left():
+                            camera.left()
+                    elif event.key == pygame.K_RIGHT:
+                        if game.player.right():
+                            camera.right()
+                    elif event.key == pygame.K_SPACE:
+                        game.player.fire()
