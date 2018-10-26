@@ -12,6 +12,21 @@ TILE_WIDTH = 32
 TILE_HEIGHT = 32
 
 
+class Game(object):
+    def __init__(self):
+        self.cannons = []
+
+
+class Cannon(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
+
+    def image(self):
+        return self.sprite
+
+
 class Bullet(object):
     def __init__(self, x, y, position):
         self.start_x = x
@@ -19,7 +34,7 @@ class Bullet(object):
         self.x = x
         self.y = y
         self.position = position
-        self.sprite = pygame.image.load('./data/sprites/canon.png').convert_alpha()
+        self.sprite = pygame.image.load('./data/sprites/bullet.png').convert_alpha()
 
     def image(self):
         return self.sprite
@@ -127,6 +142,9 @@ class Camera(object):
 
 
 class Level(object):
+    def __init__(self, game):
+        self.game = game
+
     def load_file(self, filename):
         self.map = []
         self.images = {}
@@ -137,11 +155,11 @@ class Level(object):
         area = parser.get("level", "map").split("\n")
 
         # read all available objects configurations
-        keys = {}
+        self.keys = {}
         for section in parser.sections():
             desc = dict(parser.items(section))
             if 'name' in desc:
-                keys[section] = desc
+                self.keys[section] = desc
 
         # save map resolution
         self.width = len(area[0])
@@ -151,14 +169,23 @@ class Level(object):
         for y in range(0, self.height):
             self.map.append([])
             for x in range(0, self.width):
-                meta = dict(keys[area[y][x]])
+                meta = dict(self.keys[area[y][x]])
                 meta['image'] = meta['name']
                 self.map[y].append(meta)
+
+        self.original_map = self.map
 
         # normalize map
         for x in range(0, self.width):
             for y in range(0, self.height):
-                if self.get_tile(x, y)['complex'] == 'no': continue
+                if self.get_real_tile(x, y)['complex'] == 'no': continue
+
+                tile = self.get_real_tile(x, y)
+                if tile['name'] == 'cannon':
+                    self.game.cannons.append(Cannon(x, y))
+                    self.map[y][x] = self.keys[tile['act_as']]
+                    self.map[y][x]['image'] = self.keys[tile['act_as']]['name']
+                    continue
 
                 name = self.get_tile(x, y)['name']
                 left = self.get_tile(x - 1, y)['name']
@@ -188,9 +215,20 @@ class Level(object):
 
     def get_tile(self, x, y):
         try:
-            return self.map[y][x]
+            tile = self.map[y][x]
+            if 'act_as' in tile:
+                tile = dict(self.keys[tile['act_as']])
+                tile['image'] = tile['name']
+                return tile
+            return tile
         except IndexError:
-            return {'name': 'water', 'complex': 'no'}
+            return self.keys['.']
+
+    def get_real_tile(self, x, y):
+        try:
+            return self.original_map[y][x]
+        except IndexError:
+            return self.keys['.']
 
 
 if __name__=='__main__':
@@ -202,8 +240,11 @@ if __name__=='__main__':
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.DOUBLEBUF, 32)
     screen.fill((255, 255, 255))
 
+    # load game storage
+    game = Game()
+
     # load level configuration
-    level = Level()
+    level = Level(game)
     level.load_file('./data/levels/1.map')
 
     # load player ship configuration
@@ -249,6 +290,10 @@ if __name__=='__main__':
         for bullet in player.bullets:
             bullet.recalculate()
             screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) + half_bullet_size, int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) + half_bullet_size))
+
+        for cannon in game.cannons:
+            half_cannon_size = 10
+            screen.blit(cannon.image(), (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - half_cannon_size, int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - half_cannon_size))
 
         # debug text
         #  text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
