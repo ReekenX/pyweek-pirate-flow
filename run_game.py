@@ -31,7 +31,7 @@ class Game(object):
         self.clock = pygame.time.Clock()
 
         # fonts used in the game
-        self.small_font = pygame.font.Font('./data/fonts/font.ttf', 12)
+        self.small_font = pygame.font.Font('./data/fonts/font.ttf', 14)
         self.regular_font = pygame.font.Font('./data/fonts/font.ttf', 16)
         self.title_font = pygame.font.Font('./data/fonts/font.ttf', 64)
 
@@ -585,15 +585,15 @@ if __name__=='__main__':
             health_text = 'HEALTH:'
             (width, height) = game.small_font.size(health_text)
             text = game.small_font.render(health_text, False, (0, 0, 0))
-            screen.blit(text, (28, SCREEN_HEIGHT - 44))
+            screen.blit(text, (28, SCREEN_HEIGHT - 45))
 
             # draw normal HEALTH text
             text = game.small_font.render(health_text, False, (255, 255, 255))
-            screen.blit(text, (27, SCREEN_HEIGHT - 45))
+            screen.blit(text, (27, SCREEN_HEIGHT - 46))
 
             # draw energy stars
             for energy in range(0, game.player.energy):
-                screen.blit(star, (width + 37 + energy * 19, SCREEN_HEIGHT - 45))
+                screen.blit(star, (width + 36 + energy * 19, SCREEN_HEIGHT - 44))
 
             # draw shadow SCORE text
             score_text = 'Score: {}'.format(game.player.score)
