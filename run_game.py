@@ -44,6 +44,7 @@ class Game(object):
         pygame.mixer.music.play(-1, 0.0)
 
     def tick(self):
+        # Method used to calculate time elapsed (for animations)
         self.clock_elapsed = game.clock.tick(50)
         return self.clock_elapsed
 
@@ -183,6 +184,7 @@ class Player(object):
         self.fire_distance = 10
         self.dead_timer = 0
         self.dead_delay = 2000 # in miliseconds
+        self.score = 0
 
     def set_position(self, x, y):
         self.x = x
@@ -451,6 +453,7 @@ if __name__=='__main__':
                 else:
                     for cannon in game.cannons:
                         if bullet.reaches(cannon):
+                            game.player.score += 100
                             missed = False
                             game.cannons.remove(cannon)
                             game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
@@ -502,10 +505,29 @@ if __name__=='__main__':
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # informational text
-        if not game.player.has_lost():
-            text = game.regular_font.render('Life Score: {} / {}'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
-            screen.blit(text, (10, 10))
-        else:
+        if game.started:
+            # draw shadow HEALTH text
+            health_text = 'HEALTH: {} / {}'.format(game.player.energy, game.player.max_energy)
+            (width, height) = game.regular_font.size(health_text)
+            text = game.regular_font.render(health_text, False, (255, 255, 255))
+            screen.blit(text, (15, 15))
+
+            # draw normal HEALTH text
+            text = game.regular_font.render(health_text, False, (0, 0, 0))
+            screen.blit(text, (15 + 1, 15 + 1))
+
+            # draw shadow SCORE text
+            score_text = 'Score: {}'.format(game.player.score)
+            (width, height) = game.regular_font.size(score_text)
+            text = game.regular_font.render(score_text, False, (255, 255, 255))
+            screen.blit(text, (SCREEN_WIDTH - width - 15, 15))
+
+            # draw normal SCORE text
+            text = game.regular_font.render(score_text, False, (0, 0, 0))
+            screen.blit(text, (SCREEN_WIDTH - width - 15 + 1, 15 + 1))
+
+        # draw text saying that player lost the game
+        if game.player.has_lost():
             title = 'GAME OVER'
             (width, height) = game.title_font.size(title)
 
