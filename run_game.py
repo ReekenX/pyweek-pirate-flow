@@ -507,6 +507,8 @@ if __name__=='__main__':
     achievements = pygame.image.load('./data/sprites/achievements.png').convert_alpha()
     shoot = pygame.image.load('./data/sprites/shoot.png').convert_alpha()
     shoot = pygame.transform.scale(shoot, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
+    world = pygame.image.load('./data/sprites/world.png').convert_alpha()
+    world = pygame.transform.scale(world, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
     myfont = pygame.font.SysFont('Arial', 30)
 
@@ -728,15 +730,13 @@ if __name__=='__main__':
                 screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) + int(height / 2) - 250))
 
                 screen.blit(shoot, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 180))
-
-
                 if game.achievements.cannons_reached:
                     # draw shadow KILL CANNONS text
-                    text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                    text = game.big_font.render('Eliminate at least {} cannons'.format(game.achievements.cannons_goal), False, (0, 0, 0))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 170))
 
                     # draw normal KILL CANNONS text
-                    text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                    text = game.big_font.render('Eliminate at least {} cannons'.format(game.achievements.cannons_goal), False, (255, 255, 255))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 170))
 
                     # draw shadow KILL CANNONS text
@@ -748,20 +748,55 @@ if __name__=='__main__':
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 145))
                 else:
                     # draw shadow KILL CANNONS text
-                    text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                    text = game.big_font.render('Eliminate at least {} cannons'.format(game.achievements.cannons_goal), False, (255, 255, 255))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 170))
 
                     # draw normal KILL CANNONS text
-                    text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                    text = game.big_font.render('Eliminate at least {} cannons'.format(game.achievements.cannons_goal), False, (0, 0, 0))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 170))
 
                     # draw shadow KILL CANNONS text
-                    text = game.small_font.render('Target not reached'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                    text = game.small_font.render('Target not reached', False, (255, 255, 255))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 145))
 
                     # draw normal KILL CANNONS text
-                    text = game.small_font.render('Target not reached'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                    text = game.small_font.render('Target not reached', False, (0, 0, 0))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 145))
+
+                screen.blit(world, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 80))
+                if game.achievements.distance_reached:
+                    # draw shadow KILL CANNONS text
+                    text = game.big_font.render('Travel {} miles'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 70))
+
+                    # draw normal KILL CANNONS text
+                    text = game.big_font.render('Travel {} miles'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 70))
+
+                    # draw shadow KILL CANNONS text
+                    text = game.small_font.render('Unlocked! Traveled miles so far: {}'.format(game.achievements.distance_traveled), False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 45))
+
+                    # draw normal KILL CANNONS text
+                    text = game.small_font.render('Unlocked! Traveled miles so far: {}'.format(game.achievements.distance_traveled), False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 45))
+                else:
+                    # draw shadow KILL CANNONS text
+                    text = game.big_font.render('Travel {} miles'.format(game.achievements.distance_goal), False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 70))
+
+                    # draw normal KILL CANNONS text
+                    text = game.big_font.render('Travel {} miles'.format(game.achievements.distance_goal), False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 70))
+
+                    # draw shadow KILL CANNONS text
+                    text = game.small_font.render('Target not reached', False, (255, 255, 255))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 45))
+
+                    # draw normal KILL CANNONS text
+                    text = game.small_font.render('Target not reached', False, (0, 0, 0))
+                    screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 45))
+
 
         # render and limit fps to 50
         pygame.display.flip()
