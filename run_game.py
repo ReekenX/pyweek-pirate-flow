@@ -33,10 +33,14 @@ class Game(object):
         # fonts used in the game
         self.small_font = pygame.font.Font('./data/fonts/font.ttf', 14)
         self.regular_font = pygame.font.Font('./data/fonts/font.ttf', 16)
+        self.big_font = pygame.font.Font('./data/fonts/font.ttf', 24)
         self.title_font = pygame.font.Font('./data/fonts/font.ttf', 64)
 
         # has gameplay started?
         self.started = False
+
+        # game screen: gameplay, achievements
+        self.screen = "gameplay"
 
         # load background music
         pygame.mixer.init()
@@ -479,6 +483,8 @@ if __name__=='__main__':
     star = pygame.image.load('./data/sprites/star.png').convert_alpha()
 
     achievements = pygame.image.load('./data/sprites/achievements.png').convert_alpha()
+    shoot = pygame.image.load('./data/sprites/shoot.png').convert_alpha()
+    shoot = pygame.transform.scale(shoot, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
     myfont = pygame.font.SysFont('Arial', 30)
 
@@ -572,7 +578,8 @@ if __name__=='__main__':
 
         # render first enemy group - cannons
         for cannon in game.cannons:
-            cannon.move()
+            if game.screen == "gameplay":
+                cannon.move()
             image = cannon.image()
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
@@ -607,13 +614,13 @@ if __name__=='__main__':
             text = game.regular_font.render(score_text, False, (0, 0, 0))
             screen.blit(text, (SCREEN_WIDTH - width - 21, 20))
 
-           #  draw shadow PRESS I text
-            score_text = 'Press T'
+           #  draw shadow PRESS A text
+            score_text = 'Press A'
             (width, height) = game.regular_font.size(score_text)
             text = game.regular_font.render(score_text, False, (0, 0, 0))
             screen.blit(text, (SCREEN_WIDTH - width - 20, SCREEN_HEIGHT - 40))
 
-            #  draw normal PRESS I text
+            #  draw normal PRESS A text
             text = game.regular_font.render(score_text, False, (255, 255, 255))
             screen.blit(text, (SCREEN_WIDTH - width - 21, SCREEN_HEIGHT - 41))
 
@@ -661,6 +668,44 @@ if __name__=='__main__':
             if pygame.mixer.music.get_volume() < 0.4:
                 pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + 0.01)
 
+            if game.screen == 'achievements':
+                title = 'Achievements'
+                (width, height) = game.title_font.size(title)
+
+                # draw shadow ACHIEVEMENTS text
+                text = game.title_font.render(title, False, (0, 0, 0))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) - int(height / 2) + 1 - 250))
+
+                # draw normal ACHIEVEMENTS text
+                text = game.title_font.render(title, False, (255, 255, 255))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) - int(height / 2) - 250))
+
+                # draw shadow PRESS SPACE text
+                text = game.regular_font.render('Press SPACE to return to the game'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 250))
+
+                # draw normal PRESS SPACE text
+                text = game.regular_font.render('Press SPACE to return to the game'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) + int(height / 2) - 250))
+
+                screen.blit(shoot, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 180))
+
+                # draw shadow KILL CANNONS text
+                text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 170))
+
+                # draw normal KILL CANNONS text
+                text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 170))
+
+                # draw shadow KILL CANNONS text
+                text = game.small_font.render('Target not reached'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 145))
+
+                # draw normal KILL CANNONS text
+                text = game.small_font.render('Target not reached'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+                screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) - 145))
+
         # render and limit fps to 50
         pygame.display.flip()
         game.tick()
@@ -672,20 +717,26 @@ if __name__=='__main__':
             elif event.type == pygame.locals.KEYDOWN:
                 if game.player.is_alive:
                     if game.started:
-                        if event.key == pygame.K_DOWN:
-                            if game.player.down():
-                                camera.down()
-                        elif event.key == pygame.K_UP:
-                            if game.player.up():
-                                camera.up()
-                        elif event.key == pygame.K_LEFT:
-                            if game.player.left():
-                                camera.left()
-                        elif event.key == pygame.K_RIGHT:
-                            if game.player.right():
-                                camera.right()
-                        elif event.key == pygame.K_SPACE:
-                            game.player.fire()
+                        if game.screen == 'gameplay':
+                            if event.key == pygame.K_DOWN:
+                                if game.player.down():
+                                    camera.down()
+                            elif event.key == pygame.K_UP:
+                                if game.player.up():
+                                    camera.up()
+                            elif event.key == pygame.K_LEFT:
+                                if game.player.left():
+                                    camera.left()
+                            elif event.key == pygame.K_RIGHT:
+                                if game.player.right():
+                                    camera.right()
+                            elif event.key == pygame.K_SPACE:
+                                game.player.fire()
+                            elif event.key == pygame.K_a:
+                                game.screen = 'achievements'
+                        elif game.screen == 'achievements':
+                            if event.key == pygame.K_SPACE:
+                                game.screen = 'gameplay'
                     else:
                         if event.key == pygame.K_SPACE:
                             game.started = True
