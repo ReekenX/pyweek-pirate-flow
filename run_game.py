@@ -220,10 +220,12 @@ class Player(object):
         self.dead_timer = 0
         self.dead_delay = 2000 # in miliseconds
         self.score = 0
+        self.initialized = False
 
     def set_position(self, x, y):
         self.x = x
         self.y = y
+        self.initialized = True
 
     def image(self):
         if self.position == 'right':
@@ -350,6 +352,24 @@ class Level(object):
                 meta['image'] = meta['name']
                 self.map[y].append(meta)
 
+        # fake map by creating inverse map size to the left
+        for y in range(self.height - 1, -1, -1):
+            for x in range(self.width - 1, -1, -1):
+                meta = dict(self.keys[area[self.height - y - 1][x]])
+                meta['image'] = meta['name']
+                self.map[y].append(meta)
+
+        # save new faked map resolution
+        self.width = len(self.map[0])
+        self.height = len(self.map)
+
+        # fake map by creating inverse map to the bottom
+        #  for y in range(0, self.height - 1):
+            #  self.map.append(self.map[y])
+
+        # save new faked map resolution
+        self.width = len(self.map[0])
+        self.height = len(self.map)
         self.original_map = self.map
 
         # normalize map
@@ -373,7 +393,8 @@ class Level(object):
                     continue
                 elif tile['name'] == 'player':
                     # set player coordinates from the map
-                    self.game.player.set_position(x, y)
+                    if not self.game.player.initialized:
+                        self.game.player.set_position(x, y)
 
                     # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
