@@ -59,19 +59,32 @@ class Cannon(object):
 
 
 class Explosion(object):
-    def __init__(self, x, y):
+    def __init__(self, game, x, y, size):
+        self.game = game
         self.x = x
         self.y = y
         self.frame_no = -1
+        self.frame_frequency = 70 # in miliseconds
+        self.frame_time = 0
         self.frames = [
             pygame.image.load('./data/sprites/explosion3.png').convert_alpha(),
             pygame.image.load('./data/sprites/explosion2.png').convert_alpha(),
             pygame.image.load('./data/sprites/explosion1.png').convert_alpha(),
         ]
+        if size == 'tiny':
+            self.size = (TILE_WIDTH, TILE_HEIGHT)
+        elif size == 'small':
+            self.size = (TILE_WIDTH * 2, TILE_HEIGHT * 2)
+        elif size == 'medium':
+            self.size = (TILE_WIDTH * 3, TILE_HEIGHT * 3)
 
     def image(self):
-        self.frame_no += 1
-        return pygame.transform.scale(self.frames[self.frame_no], (TILE_WIDTH, TILE_HEIGHT))
+        if self.frame_time > 0:
+            self.frame_time -= self.game.clock_elapsed
+        else:
+            self.frame_time = self.frame_frequency
+            self.frame_no += 1
+        return pygame.transform.scale(self.frames[self.frame_no], self.size)
 
     def finished(self):
         return self.frame_no == len(self.frames) - 1
@@ -343,12 +356,17 @@ if __name__=='__main__':
         for bullet in game.bullets:
             bullet.move()
             if bullet.finished():
+                missed = True
                 if bullet.reaches(game.player):
-                    raise_error()
-                for cannon in game.cannons:
-                    if bullet.reaches(cannon):
-                        game.cannons.remove(cannon)
-                game.explosions.append(Explosion(bullet.x, bullet.y))
+                    missed = False
+                    game.explosions.append(Explosion(game, bullet.x, bullet.y, 'medium'))
+                else:
+                    for cannon in game.cannons:
+                        if bullet.reaches(cannon):
+                            missed = False
+                            game.cannons.remove(cannon)
+                            game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
+                            break # same bullet can't hit few items
                 game.bullets.remove(bullet)
             else:
                 image = bullet.image()
