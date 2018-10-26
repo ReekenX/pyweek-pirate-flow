@@ -419,18 +419,25 @@ if __name__=='__main__':
                     if game.player.energy <= 0:
                         game.player.dead()
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'medium'))
-                    pygame.mixer.Sound('./data/music/explosion.wav').play()
+                    sound = pygame.mixer.Sound('./data/music/explosion.wav')
+                    sound.set_volume(0.8)
+                    sound.play()
                 else:
                     for cannon in game.cannons:
                         if bullet.reaches(cannon):
                             missed = False
                             game.cannons.remove(cannon)
                             game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
-                            pygame.mixer.Sound('./data/music/explosion.wav').play()
+
+                            sound = pygame.mixer.Sound('./data/music/explosion.wav')
+                            sound.set_volume(0.6)
+                            sound.play()
                             break # same bullet can't hit few items
                 if missed:
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'tiny'))
-                    pygame.mixer.Sound('./data/music/explosion.wav').play()
+                    sound = pygame.mixer.Sound('./data/music/explosion.wav')
+                    sound.set_volume(0.2)
+                    sound.play()
                 game.bullets.remove(bullet)
             else:
                 image = bullet.image()
