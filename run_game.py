@@ -28,7 +28,8 @@ class Game(object):
         self.level.load_file('./data/levels/1.map')
         self.clock = pygame.time.Clock()
 
-        self.font = pygame.font.Font('./data/fonts/font.ttf', 16)
+        self.regular_font = pygame.font.Font('./data/fonts/font.ttf', 16)
+        self.title_font = pygame.font.Font('./data/fonts/font.ttf', 64)
 
     def tick(self):
         self.clock_elapsed = game.clock.tick(50)
@@ -147,6 +148,8 @@ class Player(object):
         self.fire_frequency = 1000 # in miliseconds
         self.is_alive = True
         self.fire_distance = 10
+        self.dead_timer = 0
+        self.dead_delay = 2000 # in miliseconds
 
     def set_position(self, x, y):
         self.x = x
@@ -165,6 +168,8 @@ class Player(object):
     def move(self):
         if self.fire_timer > 0:
             self.fire_timer -= self.game.clock_elapsed
+        if self.dead_timer > 0:
+            self.dead_timer -= self.game.clock_elapsed
 
     def up(self):
         if self.game.level.get_tile(self.x, self.y - 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y - 2)['name'] != 'sand':
@@ -202,6 +207,13 @@ class Player(object):
         if self.fire_timer <= 0:
             self.game.bullets.append(Bullet(self.x, self.y, self.position, self.fire_distance))
             self.fire_timer = self.fire_frequency
+
+    def dead(self):
+        self.is_alive = False
+        self.dead_timer = self.dead_delay
+
+    def has_lost(self):
+        return not self.is_alive and self.dead_timer < 0
 
 
 class Camera(object):
@@ -377,8 +389,8 @@ if __name__=='__main__':
                     screen.blit(game.level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
+        game.player.move()
         if game.player.is_alive:
-            game.player.move()
             image = game.player.image()
             screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
@@ -391,7 +403,7 @@ if __name__=='__main__':
                     missed = False
                     game.player.energy -= 1
                     if game.player.energy <= 0:
-                        game.player.is_alive = False
+                        game.player.dead()
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'medium'))
                 else:
                     for cannon in game.cannons:
@@ -421,9 +433,17 @@ if __name__=='__main__':
             image = cannon.image()
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
-        # debug text
-        text = game.font.render('Life Score: {} / {}'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
-        screen.blit(text, (10, 10))
+        # informational text
+        if not game.player.has_lost():
+            text = game.regular_font.render('Life Score: {} / {}'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+            screen.blit(text, (10, 10))
+        else:
+            title = 'GAME OVER'
+            (width, height) = game.title_font.size(title)
+            text = game.title_font.render(title, False, (0, 0, 0))
+            screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) - int(height / 2) + 1))
+            text = game.title_font.render(title, False, (255, 255, 255))
+            screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) - int(height / 2)))
 
         # render and limit fps to 50
         pygame.display.flip()
