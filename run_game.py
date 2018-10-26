@@ -34,6 +34,7 @@ class Game(object):
         self.bullets = []
         self.cannons = []
         self.hearts = []
+        self.medals = []
         self.explosions = []
 
         # load player ship configuration
@@ -83,6 +84,11 @@ class Heart(object):
 
     def reaches(self, obj):
         return math.sqrt((self.x - obj.x) ** 2 + (self.y - obj.y)**2) < 1
+
+class Medal(Heart):
+    def __init__(self, game, x, y):
+        Heart.__init__(self, game, x, y)
+        self.sprite = pygame.transform.scale(pygame.image.load('./data/sprites/medal.png').convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))
 
 
 class Cannon(object):
@@ -436,6 +442,13 @@ class Level(object):
                     # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
                     self.map[y][x]['image'] = 'water'
+                elif tile['name'] == 'medal':
+                    # add medal to the map
+                    self.game.medals.append(Medal(self.game, x, y))
+
+                    # replace player place in the map with the water
+                    self.map[y][x] = self.keys['.']
+                    self.map[y][x]['image'] = 'water'
 
                 name = self.get_tile(x, y)['name']
                 left = self.get_tile(x - 1, y)['name']
@@ -640,6 +653,31 @@ if __name__=='__main__':
             else:
                 image = heart.image()
                 screen.blit(image, (int((heart.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((heart.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+
+        # render special items - medals
+        for mini_medal in game.medals:
+            if mini_medal.reaches(game.player):
+                # play healt song
+                sound = pygame.mixer.Sound('./data/music/mini_medal.wav')
+                sound.set_volume(0.2)
+                sound.play()
+
+                game.player.score += 500
+
+                # check to see if player has not reached a goal yet
+                if not game.achievements.score_reached and game.player.score > game.achievements.score_goal:
+                    game.achievements.score_reached = True
+
+                    # play another achievement reached music
+                    sound = pygame.mixer.Sound('./data/music/achievement.wav')
+                    sound.set_volume(0.3)
+                    sound.play()
+
+                # drop collected item
+                game.mini_medals.remove(mini_medal)
+            else:
+                image = mini_medal.image()
+                screen.blit(image, (int((mini_medal.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((mini_medal.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render first enemy group - cannons
         for cannon in game.cannons:
