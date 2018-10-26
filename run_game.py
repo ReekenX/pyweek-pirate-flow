@@ -127,11 +127,8 @@ class Explosion(object):
         self.frame_no = -1
         self.frame_frequency = 50 # in miliseconds
         self.frame_time = 0
-        self.frames = [
-            pygame.image.load('./data/sprites/explosion3.png').convert_alpha(),
-            pygame.image.load('./data/sprites/explosion2.png').convert_alpha(),
-            pygame.image.load('./data/sprites/explosion1.png').convert_alpha(),
-        ]
+
+        # explosion size is based on exploded object size
         if size == 'tiny':
             self.size = (TILE_WIDTH, TILE_HEIGHT)
         elif size == 'small':
@@ -139,13 +136,21 @@ class Explosion(object):
         elif size == 'medium':
             self.size = (TILE_WIDTH * 3, TILE_HEIGHT * 3)
 
+        # set and scale animation frames
+        self.frames = [
+            pygame.transform.scale(pygame.image.load('./data/sprites/explosion3.png').convert_alpha(), self.size),
+            pygame.transform.scale(pygame.image.load('./data/sprites/explosion2.png').convert_alpha(), self.size),
+            pygame.transform.scale(pygame.image.load('./data/sprites/explosion1.png').convert_alpha(), self.size),
+        ]
+
     def image(self):
         if self.frame_time > 0:
             self.frame_time -= self.game.clock_elapsed
         else:
             self.frame_time = self.frame_frequency
             self.frame_no += 1
-        return pygame.transform.scale(self.frames[self.frame_no], self.size)
+
+        return self.frames[self.frame_no]
 
     def finished(self):
         return self.frame_no == len(self.frames) - 1
