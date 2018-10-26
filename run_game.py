@@ -94,6 +94,16 @@ class Cannon(object):
         if not self.game.player.is_alive:
             return False
 
+        # no need to fire is player is behind
+        if self.position == 'down' and self.y > self.game.player.y:
+            return False
+        elif self.position == 'up' and self.y < self.game.player.y:
+            return False
+        elif self.position == 'right' and self.x > self.game.player.x:
+            return False
+        elif self.position == 'left' and self.x < self.game.player.x:
+            return False
+
         # calculate distance between player and canon and if it's close enough - fire
         return self.distance_from_player() < self.max_distance + 2
 
