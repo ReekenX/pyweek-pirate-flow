@@ -19,7 +19,7 @@ class Game(object):
         # enemy objects
         self.bullets = []
         self.cannons = []
-        self.hearths = []
+        self.hearts = []
         self.explosions = []
 
         # load player ship configuration
@@ -49,12 +49,12 @@ class Game(object):
         return self.clock_elapsed
 
 
-class Hearth(object):
+class Heart(object):
     def __init__(self, game, x, y):
         self.game = game
         self.x = x
         self.y = y
-        self.sprite = pygame.transform.scale(pygame.image.load('./data/sprites/hearth.png').convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))
+        self.sprite = pygame.transform.scale(pygame.image.load('./data/sprites/heart.png').convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))
 
     def image(self):
         return self.sprite
@@ -399,9 +399,9 @@ class Level(object):
                     # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
                     self.map[y][x]['image'] = 'water'
-                elif tile['name'] == 'hearth':
-                    # add hearth to the map
-                    self.game.hearths.append(Hearth(self.game, x, y))
+                elif tile['name'] == 'heart':
+                    # add heart to the map
+                    self.game.hearts.append(Heart(self.game, x, y))
 
                     # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
@@ -544,9 +544,9 @@ if __name__=='__main__':
                 image = explosion.image()
                 screen.blit(image, (int((explosion.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((explosion.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
-        # render special items - hearths
-        for hearth in game.hearths:
-            if hearth.reaches(game.player):
+        # render special items - hearts
+        for heart in game.hearts:
+            if heart.reaches(game.player):
                 # play powerup song
                 sound = pygame.mixer.Sound('./data/music/powerup.wav')
                 sound.set_volume(0.1)
@@ -557,10 +557,10 @@ if __name__=='__main__':
                     game.player.energy += 1
 
                 # drop collected item
-                game.hearths.remove(hearth)
+                game.hearts.remove(heart)
             else:
-                image = hearth.image()
-                screen.blit(image, (int((hearth.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((hearth.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+                image = heart.image()
+                screen.blit(image, (int((heart.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((heart.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render first enemy group - cannons
         for cannon in game.cannons:
