@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+import os
 import pygame
 import pygame.locals
 import configparser
@@ -150,19 +151,14 @@ class Level(object):
         for y in range(0, self.height):
             self.map.append([])
             for x in range(0, self.width):
-                name = keys[area[y][x]]['name']
-                if name == 'sand':
-                    self.map[y].append({
-                        'name': 'sand',
-                        'image': 'sand1'
-                    })
-                else:
-                    self.map[y].append({'name': name, 'image': name})
+                meta = dict(keys[area[y][x]])
+                meta['image'] = meta['name']
+                self.map[y].append(meta)
 
         # normalize map
         for x in range(0, self.width):
             for y in range(0, self.height):
-                if self.get_tile(x, y)['name'] != 'sand': continue
+                if self.get_tile(x, y)['complex'] == 'no': continue
 
                 name = self.get_tile(x, y)['name']
                 left = self.get_tile(x - 1, y)['name']
@@ -173,19 +169,10 @@ class Level(object):
                 hashed = left[0] + right[0] + top[0] + bottom[0]
 
                 # choose sand sprite based on sand/land position
-                if hashed == 'wsws': self.map[y][x]['image'] = 'sand1'
-                elif hashed == 'sswg': self.map[y][x]['image'] = 'sand2'
-                elif hashed == 'swws': self.map[y][x]['image'] = 'sand3'
-                elif hashed == 'wgss': self.map[y][x]['image'] = 'sand4'
-                elif hashed == 'gwss': self.map[y][x]['image'] = 'sand5'
-                elif hashed == 'wssw': self.map[y][x]['image'] = 'sand6'
-                elif hashed == 'ssgw': self.map[y][x]['image'] = 'sand7'
-                elif hashed == 'swsw': self.map[y][x]['image'] = 'sand8'
-                elif hashed == 'gsgs': self.map[y][x]['image'] = 'sand9'
-                elif hashed == 'gssg': self.map[y][x]['image'] = 'sand10'
-                elif hashed == 'sgsg': self.map[y][x]['image'] = 'sand11'
-                elif hashed == 'sggs': self.map[y][x]['image'] = 'sand12'
-                else: self.map[y][x]['image'] = 'water'
+                if os.path.isfile('./data/sprites/{}-{}.png'.format(name, hashed)):
+                    self.map[y][x]['image'] = '{}-{}'.format(name, hashed)
+                else:
+                    self.map[y][x]['image'] = 'water' # so we can spot missing sprite in the game
 
     def get_sprite(self, name):
         # try to get image from cache
@@ -203,7 +190,7 @@ class Level(object):
         try:
             return self.map[y][x]
         except IndexError:
-            return {'name': 'water'}
+            return {'name': 'water', 'complex': 'no'}
 
 
 if __name__=='__main__':
