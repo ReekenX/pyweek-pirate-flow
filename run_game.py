@@ -88,6 +88,9 @@ class Bullet(object):
         if self.position == 'right': self.x += 1
         if self.position == 'left': self.x -= 1
 
+    def reaches(self, obj):
+        return math.sqrt((self.x - obj.x) ** 2 + (self.y - obj.y)**2) < 1
+
 
 class Player(object):
     def __init__(self, game):
@@ -95,6 +98,7 @@ class Player(object):
         self.x = 0
         self.y = 0
         self.position = 'down'
+        self.energy = 5
         self.down_image = image = pygame.transform.scale(
                 pygame.image.load('./data/sprites/player.png').convert_alpha(),
                 (TILE_WIDTH * 2, TILE_HEIGHT * 2))
@@ -317,6 +321,11 @@ if __name__=='__main__':
         for bullet in game.bullets:
             bullet.move()
             if bullet.finished():
+                if bullet.reaches(game.player):
+                    raise_error()
+                for cannon in game.cannons:
+                    if bullet.reaches(cannon):
+                        game.cannons.remove(cannon)
                 game.explosions.append(Explosion(bullet.x, bullet.y))
                 game.bullets.remove(bullet)
             else:
