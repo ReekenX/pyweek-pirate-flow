@@ -599,11 +599,11 @@ if __name__=='__main__':
             score_text = 'Score: {}'.format(game.player.score)
             (width, height) = game.regular_font.size(score_text)
             text = game.regular_font.render(score_text, False, (255, 255, 255))
-            screen.blit(text, (SCREEN_WIDTH - width - 15, 15))
+            screen.blit(text, (SCREEN_WIDTH - width - 21, 21))
 
             # draw normal SCORE text
             text = game.regular_font.render(score_text, False, (0, 0, 0))
-            screen.blit(text, (SCREEN_WIDTH - width - 15 + 1, 15 + 1))
+            screen.blit(text, (SCREEN_WIDTH - width - 20, 20))
 
         # draw text saying that player lost the game
         if game.player.has_lost():
