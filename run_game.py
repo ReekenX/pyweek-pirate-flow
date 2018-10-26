@@ -2,9 +2,11 @@
 
 import os
 import math
+import wave
+import configparser
 import pygame
 import pygame.locals
-import configparser
+import mutagen.mp3
 
 # constants
 SCREEN_WIDTH = 928
@@ -34,6 +36,13 @@ class Game(object):
 
         # has gameplay started?
         self.started = False
+
+        # load background music
+        mp3 = mutagen.mp3.MP3("./data/music/bg.mp3")
+        pygame.mixer.init(frequency=mp3.info.sample_rate)
+        #  pygame.mixer.init(44100)
+        pygame.mixer.music.load("./data/music/bg.mp3")
+        pygame.mixer.music.play(-1, 0.0)
 
     def tick(self):
         self.clock_elapsed = game.clock.tick(50)
