@@ -14,7 +14,16 @@ TILE_HEIGHT = 32
 
 class Game(object):
     def __init__(self):
+        # enemy objects
         self.cannons = []
+        self.explosions = []
+
+        # load player ship configuration
+        self.player = Player(self)
+
+        # load level/map configuration
+        self.level = Level(self)
+        self.level.load_file('./data/levels/1.map')
 
 
 class Cannon(object):
@@ -27,20 +36,40 @@ class Cannon(object):
         return self.sprite
 
 
+class Explosion(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.frame_no = -1
+        self.frames = [
+            pygame.image.load('./data/sprites/explosion3.png').convert_alpha(),
+            pygame.image.load('./data/sprites/explosion2.png').convert_alpha(),
+            pygame.image.load('./data/sprites/explosion1.png').convert_alpha(),
+        ]
+
+    def image(self):
+        self.frame_no += 1
+        return pygame.transform.scale(self.frames[self.frame_no], (TILE_WIDTH, TILE_HEIGHT))
+
+    def finished(self):
+        return self.frame_no == len(self.frames) - 1
+
+
 class Bullet(object):
     def __init__(self, x, y, position):
         self.start_x = x
         self.start_y = y
         self.x = x
         self.y = y
+        self.max_distance = 8
         self.position = position
-        self.sprite = pygame.image.load('./data/sprites/bullet.png').convert_alpha()
+        self.sprite = pygame.transform.scale(pygame.image.load('./data/sprites/bullet.png').convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
     def image(self):
         return self.sprite
 
     def finished(self):
-        return abs(self.start_x - self.x) > 10 or abs(self.start_y - self.y) > 10
+        return abs(self.start_x - self.x) > self.max_distance or abs(self.start_y - self.y) > self.max_distance
 
     def recalculate(self):
         if self.position == 'up': self.y -= 1
@@ -50,21 +79,19 @@ class Bullet(object):
 
 
 class Player(object):
-    def __init__(self, level):
-        self.level = level
+    def __init__(self, game):
+        self.game = game
         self.bullets = []
-
-    def load_file(self, filename):
-        parser = configparser.ConfigParser()
-        parser.read(filename)
-        self.x, self.y = parser.get("player", "coords").split(",")
-        self.x = int(self.x)
-        self.y = int(self.y)
-        self.level = level
+        self.x = 0
+        self.y = 0
         self.position = 'down'
         self.down_image = image = pygame.transform.scale(
                 pygame.image.load('./data/sprites/player.png').convert_alpha(),
                 (TILE_WIDTH * 2, TILE_HEIGHT * 2))
+
+    def set_position(self, x, y):
+        self.x = x
+        self.y = y
 
     def image(self):
         if self.position == 'right':
@@ -77,7 +104,7 @@ class Player(object):
             return self.down_image
 
     def up(self):
-        if level.get_tile(self.x, self.y - 1)['name'] != 'sand' and level.get_tile(self.x, self.y - 2)['name'] != 'sand':
+        if self.game.level.get_tile(self.x, self.y - 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y - 2)['name'] != 'sand':
             self.y -= 1
             self.position = 'up'
             return True
@@ -85,7 +112,7 @@ class Player(object):
             return False
 
     def down(self):
-        if level.get_tile(self.x, self.y + 1)['name'] != 'sand' and level.get_tile(self.x, self.y + 2)['name'] != 'sand':
+        if self.game.level.get_tile(self.x, self.y + 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y + 2)['name'] != 'sand':
             self.y += 1
             self.position = 'down'
             return True
@@ -93,7 +120,7 @@ class Player(object):
             return False
 
     def left(self):
-        if level.get_tile(self.x - 1, self.y)['name'] != 'sand' and level.get_tile(self.x - 2, self.y)['name'] != 'sand':
+        if self.game.level.get_tile(self.x - 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x - 2, self.y)['name'] != 'sand':
             self.x -= 1
             self.position = 'left'
             return True
@@ -101,7 +128,7 @@ class Player(object):
             return False
 
     def right(self):
-        if level.get_tile(self.x + 1, self.y)['name'] != 'sand' and level.get_tile(self.x + 2, self.y)['name'] != 'sand':
+        if self.game.level.get_tile(self.x + 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x + 2, self.y)['name'] != 'sand':
             self.x += 1
             self.position = 'right'
             return True
@@ -111,6 +138,7 @@ class Player(object):
     def recalculate(self):
         for bullet in self.bullets:
             if bullet.finished():
+                self.game.explosions.append(Explosion(bullet.x, bullet.y))
                 self.bullets.remove(bullet)
 
     def fire(self):
@@ -186,6 +214,10 @@ class Level(object):
                     self.map[y][x] = self.keys[tile['act_as']]
                     self.map[y][x]['image'] = self.keys[tile['act_as']]['name']
                     continue
+                elif tile['name'] == 'player':
+                    self.map[y][x] = self.keys['.']
+                    self.map[y][x]['image'] = 'water'
+                    self.game.player.set_position(x, y)
 
                 name = self.get_tile(x, y)['name']
                 left = self.get_tile(x - 1, y)['name']
@@ -243,16 +275,8 @@ if __name__=='__main__':
     # load game storage
     game = Game()
 
-    # load level configuration
-    level = Level(game)
-    level.load_file('./data/levels/1.map')
-
-    # load player ship configuration
-    player = Player(level)
-    player.load_file('./data/levels/1.map')
-
     # load screen configuration
-    camera = Camera(level.width * TILE_WIDTH - SCREEN_WIDTH, level.height * TILE_HEIGHT - SCREEN_HEIGHT)
+    camera = Camera(game.level.width * TILE_WIDTH - SCREEN_WIDTH, game.level.height * TILE_HEIGHT - SCREEN_HEIGHT)
 
     # get background tile - water
     water_tile = pygame.image.load('./data/sprites/water.png').convert_alpha()
@@ -277,31 +301,39 @@ if __name__=='__main__':
                 camera_y = int(camera.y / TILE_HEIGHT)
 
                 # render tiles
-                tile = level.get_tile(x + camera_x, y + camera_y)
+                tile = game.level.get_tile(x + camera_x, y + camera_y)
                 if tile['name'] != 'water':
                     if tile['name'] == 'sand':
                         screen.blit(sandbg, (x * TILE_WIDTH, y * TILE_HEIGHT))
-                    screen.blit(level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
+                    screen.blit(game.level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
         # render player
-        player.recalculate()
-        screen.blit(player.image(), (int((player.x - camera_x) * TILE_WIDTH), int((player.y - camera_y) * TILE_HEIGHT)))
-        half_bullet_size = 5
-        for bullet in player.bullets:
+        game.player.recalculate()
+        image = game.player.image()
+        screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+        for bullet in game.player.bullets:
             bullet.recalculate()
-            screen.blit(bullet.image(), (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) + half_bullet_size, int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) + half_bullet_size))
+            image = bullet.image()
+            screen.blit(image, (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+
+        for explosion in game.explosions:
+            if explosion.finished():
+                game.explosions.remove(explosion)
+            else:
+                image = explosion.image()
+                screen.blit(image, (int((explosion.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((explosion.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         for cannon in game.cannons:
-            half_cannon_size = 10
-            screen.blit(cannon.image(), (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - half_cannon_size, int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - half_cannon_size))
+            image = cannon.image()
+            screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # debug text
         #  text = myfont.render('{} bullets'.format(len(player.bullets)), False, (0, 0, 0))
         #  screen.blit(text, (10, 10))
 
-        # render and limit fps to 40
+        # render and limit fps to 50
         pygame.display.flip()
-        pygame.time.Clock().tick(40)
+        pygame.time.Clock().tick(50)
 
         # handle keypresses/gameplay
         for event in pygame.event.get():
@@ -309,16 +341,16 @@ if __name__=='__main__':
                 playing = False
             elif event.type == pygame.locals.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    if player.down():
+                    if game.player.down():
                         camera.down()
                 elif event.key == pygame.K_UP:
-                    if player.up():
+                    if game.player.up():
                         camera.up()
                 elif event.key == pygame.K_LEFT:
-                    if player.left():
+                    if game.player.left():
                         camera.left()
                 elif event.key == pygame.K_RIGHT:
-                    if player.right():
+                    if game.player.right():
                         camera.right()
                 elif event.key == pygame.K_SPACE:
-                    player.fire()
+                    game.player.fire()
