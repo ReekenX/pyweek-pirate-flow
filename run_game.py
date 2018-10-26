@@ -21,7 +21,7 @@ class Achievements(object):
         self.cannons_killed = 0
 
         self.distance_reached = False
-        self.distance_goal = 10
+        self.distance_goal = 500
         self.distance_traveled = 0
 
 
