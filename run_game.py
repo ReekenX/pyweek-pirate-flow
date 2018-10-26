@@ -6,7 +6,6 @@ import wave
 import configparser
 import pygame
 import pygame.locals
-import mutagen.mp3
 
 # constants
 SCREEN_WIDTH = 928
@@ -38,9 +37,7 @@ class Game(object):
         self.started = False
 
         # load background music
-        mp3 = mutagen.mp3.MP3("./data/music/bg.mp3")
-        pygame.mixer.init(frequency=mp3.info.sample_rate)
-        #  pygame.mixer.init(44100)
+        pygame.mixer.init()
         pygame.mixer.music.load("./data/music/bg.mp3")
         pygame.mixer.music.play(-1, 0.0)
 
@@ -422,15 +419,18 @@ if __name__=='__main__':
                     if game.player.energy <= 0:
                         game.player.dead()
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'medium'))
+                    pygame.mixer.Sound('./data/music/explosion.wav').play()
                 else:
                     for cannon in game.cannons:
                         if bullet.reaches(cannon):
                             missed = False
                             game.cannons.remove(cannon)
                             game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
+                            pygame.mixer.Sound('./data/music/explosion.wav').play()
                             break # same bullet can't hit few items
                 if missed:
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'tiny'))
+                    pygame.mixer.Sound('./data/music/explosion.wav').play()
                 game.bullets.remove(bullet)
             else:
                 image = bullet.image()
