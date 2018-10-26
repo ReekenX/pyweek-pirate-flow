@@ -28,8 +28,12 @@ class Game(object):
         self.level.load_file('./data/levels/1.map')
         self.clock = pygame.time.Clock()
 
+        # fonts used in the game
         self.regular_font = pygame.font.Font('./data/fonts/font.ttf', 16)
         self.title_font = pygame.font.Font('./data/fonts/font.ttf', 64)
+
+        # has gameplay started?
+        self.started = False
 
     def tick(self):
         self.clock_elapsed = game.clock.tick(50)
@@ -56,6 +60,10 @@ class Cannon(object):
         self.fire_frequency = 2000 # in miliseconds
 
     def should_fire(self):
+        # no need to fire if game has not started yet
+        if not self.game.started:
+            return False
+
         # no need to fire when player is dead
         if not self.game.player.is_alive:
             return False
@@ -445,6 +453,26 @@ if __name__=='__main__':
             text = game.title_font.render(title, False, (255, 255, 255))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) - int(height / 2)))
 
+        if not game.started:
+            title = 'Pirate Flow'
+            (width, height) = game.title_font.size(title)
+
+            # draw black text (shadow text)
+            text = game.title_font.render(title, False, (0, 0, 0))
+            screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) - int(height / 2) + 1))
+
+            # draw normal title (normal text)
+            text = game.title_font.render(title, False, (255, 255, 255))
+            screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) - int(height / 2)))
+
+            # draw text which tells user how to start the game (shadow text)
+            text = game.regular_font.render('Press ENTER to start the game'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+            screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1))
+
+            # draw text which tells user how to start the game (normal text)
+            text = game.regular_font.render('Press ENTER to start the game'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+            screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) + int(height / 2)))
+
         # render and limit fps to 50
         pygame.display.flip()
         game.tick()
@@ -455,17 +483,22 @@ if __name__=='__main__':
                 playing = False
             elif event.type == pygame.locals.KEYDOWN:
                 if game.player.is_alive:
-                    if event.key == pygame.K_DOWN:
-                        if game.player.down():
-                            camera.down()
-                    elif event.key == pygame.K_UP:
-                        if game.player.up():
-                            camera.up()
-                    elif event.key == pygame.K_LEFT:
-                        if game.player.left():
-                            camera.left()
-                    elif event.key == pygame.K_RIGHT:
-                        if game.player.right():
-                            camera.right()
-                    elif event.key == pygame.K_SPACE:
-                        game.player.fire()
+                    if game.started:
+                        if event.key == pygame.K_DOWN:
+                            if game.player.down():
+                                camera.down()
+                        elif event.key == pygame.K_UP:
+                            if game.player.up():
+                                camera.up()
+                        elif event.key == pygame.K_LEFT:
+                            if game.player.left():
+                                camera.left()
+                        elif event.key == pygame.K_RIGHT:
+                            if game.player.right():
+                                camera.right()
+                        elif event.key == pygame.K_SPACE:
+                            game.player.fire()
+                    else:
+                        if event.key == pygame.K_SPACE:
+                            game.started = True
+
