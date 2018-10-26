@@ -181,7 +181,7 @@ class Player(object):
         self.fire_timer = 0
         self.fire_frequency = 1000 # in miliseconds
         self.is_alive = True
-        self.fire_distance = 10
+        self.fire_distance = 8
         self.dead_timer = 0
         self.dead_delay = 2000 # in miliseconds
         self.score = 0
