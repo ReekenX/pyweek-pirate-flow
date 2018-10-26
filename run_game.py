@@ -222,7 +222,7 @@ class Player(object):
         self.x = 0
         self.y = 0
         self.position = 'down'
-        self.energy = 7
+        self.energy = 5
         self.max_energy = 7
         self.down_image = image = pygame.transform.scale(
                 pygame.image.load('./data/sprites/player.png').convert_alpha(),
@@ -582,7 +582,7 @@ if __name__=='__main__':
             if heart.reaches(game.player):
                 # play healt song
                 sound = pygame.mixer.Sound('./data/music/healt.wav')
-                sound.set_volume(0.1)
+                sound.set_volume(0.2)
                 sound.play()
 
                 # add health to the user
