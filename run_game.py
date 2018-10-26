@@ -16,8 +16,13 @@ TILE_HEIGHT = 32
 
 class Achievements(object):
     def __init__(self):
-        self.cannons_goal = False
+        self.cannons_reached = False
+        self.cannons_goal = 6
         self.cannons_killed = 0
+
+        self.distance_reached = False
+        self.distance_goal = 10
+        self.distance_traveled = 0
 
 
 class Game(object):
@@ -260,6 +265,8 @@ class Player(object):
     def up(self):
         if self.position == 'down': return False
 
+        self.game.achievements.distance_traveled += 1
+
         if self.game.level.get_tile(self.x, self.y - 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y - 2)['name'] != 'sand':
             self.y -= 1
             self.position = 'up'
@@ -269,6 +276,8 @@ class Player(object):
 
     def down(self):
         if self.position == 'up': return False
+
+        self.game.achievements.distance_traveled += 1
 
         if self.game.level.get_tile(self.x, self.y + 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y + 2)['name'] != 'sand':
             self.y += 1
@@ -280,6 +289,8 @@ class Player(object):
     def left(self):
         if self.position == 'right': return False
 
+        self.game.achievements.distance_traveled += 1
+
         if self.game.level.get_tile(self.x - 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x - 2, self.y)['name'] != 'sand':
             self.x -= 1
             self.position = 'left'
@@ -289,6 +300,8 @@ class Player(object):
 
     def right(self):
         if self.position == 'left': return False
+
+        self.game.achievements.distance_traveled += 1
 
         if self.game.level.get_tile(self.x + 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x + 2, self.y)['name'] != 'sand':
             self.x += 1
@@ -519,6 +532,13 @@ if __name__=='__main__':
 
         # render player
         game.player.move()
+        if game.achievements.distance_traveled == game.achievements.distance_goal:
+            game.achievements.distance_reached = True
+
+            # play achievement sound
+            sound = pygame.mixer.Sound('./data/music/achievement.wav')
+            sound.set_volume(0.3)
+            sound.play()
         if game.player.is_alive:
             image = game.player.image()
             screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
@@ -547,10 +567,10 @@ if __name__=='__main__':
 
                             # check player achievements
                             game.achievements.cannons_killed += 1
-                            game.achievements.cannons_goal = game.achievements.cannons_killed >= 6
+                            game.achievements.cannons_reached = game.achievements.cannons_killed >= game.achievements.cannons_goal
 
                             # play achievement unlocked song
-                            if game.achievements.cannons_killed == 6:
+                            if game.achievements.cannons_killed == game.achievements.cannons_goal:
                                 sound = pygame.mixer.Sound('./data/music/achievement.wav')
                                 sound.set_volume(0.3)
                                 sound.play()
@@ -710,7 +730,7 @@ if __name__=='__main__':
                 screen.blit(shoot, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 180))
 
 
-                if game.achievements.cannons_goal:
+                if game.achievements.cannons_reached:
                     # draw shadow KILL CANNONS text
                     text = game.big_font.render('Eliminate at least 6 cannons'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
                     screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1 + 80, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1 - 170))
