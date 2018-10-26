@@ -39,6 +39,7 @@ class Game(object):
         # load background music
         pygame.mixer.init()
         pygame.mixer.music.load("./data/music/bg.mp3")
+        pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(-1, 0.0)
 
     def tick(self):
@@ -420,7 +421,7 @@ if __name__=='__main__':
                         game.player.dead()
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'medium'))
                     sound = pygame.mixer.Sound('./data/music/explosion.wav')
-                    sound.set_volume(0.8)
+                    sound.set_volume(0.6)
                     sound.play()
                 else:
                     for cannon in game.cannons:
@@ -430,13 +431,13 @@ if __name__=='__main__':
                             game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
 
                             sound = pygame.mixer.Sound('./data/music/explosion.wav')
-                            sound.set_volume(0.6)
+                            sound.set_volume(0.5)
                             sound.play()
                             break # same bullet can't hit few items
                 if missed:
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'tiny'))
                     sound = pygame.mixer.Sound('./data/music/explosion.wav')
-                    sound.set_volume(0.2)
+                    sound.set_volume(0.05)
                     sound.play()
                 game.bullets.remove(bullet)
             else:
@@ -464,30 +465,42 @@ if __name__=='__main__':
         else:
             title = 'GAME OVER'
             (width, height) = game.title_font.size(title)
+
+            # draw shadown GAME OVER text
             text = game.title_font.render(title, False, (0, 0, 0))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) - int(height / 2) + 1))
+
+            # draw normal GAME OVER text
             text = game.title_font.render(title, False, (255, 255, 255))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) - int(height / 2)))
+
+            # lower the sound to make everything more sad to the player
+            if pygame.mixer.music.get_volume() >= 0.1:
+                pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() - 0.02)
 
         if not game.started:
             title = 'Pirate Flow'
             (width, height) = game.title_font.size(title)
 
-            # draw black text (shadow text)
+            # draw shadow PIRATE FLOW text
             text = game.title_font.render(title, False, (0, 0, 0))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) - int(height / 2) + 1))
 
-            # draw normal title (normal text)
+            # draw normal PIRATE FLOW text
             text = game.title_font.render(title, False, (255, 255, 255))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) - int(height / 2)))
 
-            # draw text which tells user how to start the game (shadow text)
-            text = game.regular_font.render('Press ENTER to start the game'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
+            # draw shadow PRESS SPACE text
+            text = game.regular_font.render('Press SPACE to start the game'.format(game.player.energy, game.player.max_energy), False, (0, 0, 0))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2) + 1, int(SCREEN_HEIGHT / 2) + int(height / 2) + 1))
 
-            # draw text which tells user how to start the game (normal text)
-            text = game.regular_font.render('Press ENTER to start the game'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
+            # draw normal PRESS SPACE text
+            text = game.regular_font.render('Press SPACE to start the game'.format(game.player.energy, game.player.max_energy), False, (255, 255, 255))
             screen.blit(text, (int(SCREEN_WIDTH) / 2 - int(width / 2), int(SCREEN_HEIGHT / 2) + int(height / 2)))
+        else:
+            # add some background music volume when game has started
+            if pygame.mixer.music.get_volume() < 0.4:
+                pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + 0.01)
 
         # render and limit fps to 50
         pygame.display.flip()
