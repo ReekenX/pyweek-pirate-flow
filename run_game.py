@@ -36,6 +36,7 @@ class Game(object):
         self.hearts = []
         self.medals = []
         self.explosions = []
+        self.ships = []
 
         # load player ship configuration
         self.player = Player(self)
@@ -109,6 +110,65 @@ class Cannon(object):
         elif self.position == 'down':
             self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 270)
 
+        self.fire_timer = 0
+        self.fire_frequency = 2000 # in miliseconds
+
+    def distance_from_player(self):
+        return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2)
+
+    def should_fire(self):
+        # no need to fire if game has not started yet
+        if not self.game.started:
+            return False
+
+        # no need to fire when player is dead
+        if not self.game.player.is_alive:
+            return False
+
+        # no need to fire is player is behind
+        if self.position == 'down' and self.y > self.game.player.y:
+            return False
+        elif self.position == 'up' and self.y < self.game.player.y:
+            return False
+        elif self.position == 'right' and self.x > self.game.player.x:
+            return False
+        elif self.position == 'left' and self.x < self.game.player.x:
+            return False
+
+        # calculate distance between player and canon and if it's close enough - fire
+        return self.distance_from_player() < self.max_distance + 2
+
+    def image(self):
+        return self.sprite
+
+    def move(self):
+        if self.fire_timer > 0:
+            self.fire_timer -= self.game.clock_elapsed
+
+        if self.should_fire() and self.fire_timer <= 0:
+            self.fire_timer = self.fire_frequency
+            self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
+
+
+class Ship(object):
+    def __init__(self, game, x, y):
+        self.game = game
+        self.x = x
+        self.y = y
+        self.position = 'left'
+        self.max_distance = 6
+
+        # rotate canon based on it's position
+        if self.position == 'left':
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 180)
+        elif self.position == 'right':
+            self.sprite = pygame.image.load('./data/sprites/ship.png').convert_alpha()
+        elif self.position == 'up':
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 90)
+        elif self.position == 'down':
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 270)
+
+        self.sprite = image = pygame.transform.scale(self.sprite, (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
 
@@ -449,6 +509,13 @@ class Level(object):
                     # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
                     self.map[y][x]['image'] = 'water'
+                elif tile['name'] == 'ship':
+                    # add medal to the map
+                    self.game.ships.append(Ship(self.game, x, y))
+
+                    # replace player place in the map with the water
+                    self.map[y][x] = self.keys['.']
+                    self.map[y][x]['image'] = 'water'
 
                 name = self.get_tile(x, y)['name']
                 left = self.get_tile(x - 1, y)['name']
@@ -578,6 +645,32 @@ if __name__=='__main__':
                     sound.set_volume(0.6)
                     sound.play()
                 else:
+                    # check to see if any bullet reaches enemy ship
+                    for ship in game.ships:
+                        if bullet.reaches(ship):
+                            game.player.score += 250
+
+                            if not game.achievements.score_reached and game.player.score > game.achievements.score_goal:
+                                game.achievements.score_reached = True
+
+                                # play another achievement reached music
+                                sound = pygame.mixer.Sound('./data/music/achievement.wav')
+                                sound.set_volume(0.3)
+                                sound.play()
+
+                            missed = False
+                            game.cannons.remove(cannon)
+                            game.ships.remove(ship)
+                            game.explosions.append(Explosion(game, bullet.x, bullet.y, 'small'))
+
+                            # play explosion sound
+                            sound = pygame.mixer.Sound('./data/music/explosion.wav')
+                            sound.set_volume(0.5)
+                            sound.play()
+
+                            break # same bullet can't hit few items
+
+                    # check to see if any bullet reaches cannons
                     for cannon in game.cannons:
                         if bullet.reaches(cannon):
                             game.player.score += 100
@@ -603,9 +696,11 @@ if __name__=='__main__':
                                 sound.set_volume(0.3)
                                 sound.play()
 
+                            # play explosion sound
                             sound = pygame.mixer.Sound('./data/music/explosion.wav')
                             sound.set_volume(0.5)
                             sound.play()
+
                             break # same bullet can't hit few items
                 if missed:
                     game.explosions.append(Explosion(game, bullet.x, bullet.y, 'tiny'))
@@ -685,6 +780,13 @@ if __name__=='__main__':
                 cannon.move()
             image = cannon.image()
             screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+
+        # render second enemy group - ships
+        for ship in game.ships:
+            if game.screen == "gameplay":
+                ship.move()
+            image = ship.image()
+            screen.blit(image, (int((ship.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((ship.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # informational text
         if game.started:
