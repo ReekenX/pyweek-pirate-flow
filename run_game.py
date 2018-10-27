@@ -171,19 +171,22 @@ class Ship(object):
         self.position = 'left'
         self.max_distance = 6
 
-        # rotate canon based on it's position
-        if self.position == 'left':
-            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 180)
-        elif self.position == 'right':
-            self.sprite = pygame.image.load('./data/sprites/ship.png').convert_alpha()
-        elif self.position == 'up':
-            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 90)
-        elif self.position == 'down':
-            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 270)
+        # rotate ship based on it's position
+        self.sprites = {
+            'left': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 180), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
+            'right': pygame.transform.scale(pygame.image.load('./data/sprites/ship.png').convert_alpha(), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
+            'up': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 90), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
+            'down': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 270), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
+        }
 
-        self.sprite = image = pygame.transform.scale(self.sprite, (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
+
+        # ship traveling settings
+        self.travel_left = 3
+        self.travel_routine = 3
+        self.travel_timer = 0
+        self.travel_frequency = 2000 # in miliseconds
 
     def distance_from_player(self):
         return math.sqrt((self.x - self.game.player.x) ** 2 + (self.y - self.game.player.y)**2)
@@ -211,11 +214,28 @@ class Ship(object):
         return self.distance_from_player() < self.max_distance + 2
 
     def image(self):
-        return self.sprite
+        return self.sprites[self.position]
 
     def move(self):
         if self.fire_timer > 0:
             self.fire_timer -= self.game.clock_elapsed
+
+        if self.travel_timer > 0:
+            self.travel_timer -= self.game.clock_elapsed
+        else:
+            self.travel_timer = self.travel_frequency
+            self.travel_left -= 1
+            if self.travel_left == 0:
+                self.travel_left = self.travel_routine
+
+                if self.position == 'up':
+                    self.position = 'right'
+                elif self.position == 'down':
+                    self.position = 'left'
+                elif self.position == 'left':
+                    self.position = 'up'
+                else:
+                    self.position = 'down'
 
         if self.should_fire() and self.fire_timer <= 0:
             self.fire_timer = self.fire_frequency
