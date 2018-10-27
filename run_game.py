@@ -173,10 +173,10 @@ class Ship(object):
 
         # rotate ship based on it's position
         self.sprites = {
-            'left': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 180), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
-            'right': pygame.transform.scale(pygame.image.load('./data/sprites/ship.png').convert_alpha(), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
-            'up': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 90), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
-            'down': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 270), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
+            'up': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 180), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
+            'down': pygame.transform.scale(pygame.image.load('./data/sprites/ship.png').convert_alpha(), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
+            'right': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 90), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
+            'left': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 270), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
         }
 
         self.fire_timer = 0
