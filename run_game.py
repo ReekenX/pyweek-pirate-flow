@@ -101,14 +101,12 @@ class Cannon(object):
         self.max_distance = 6
 
         # rotate canon based on it's position
-        if self.position == 'left':
-            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 180)
-        elif self.position == 'right':
-            self.sprite = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
-        elif self.position == 'up':
-            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 90)
-        elif self.position == 'down':
-            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 270)
+        self.sprites = {
+            'left': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 180),
+            'right': pygame.image.load('./data/sprites/cannon.png').convert_alpha(),
+            'up': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 90),
+            'down': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 270)
+        }
 
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
@@ -125,7 +123,7 @@ class Cannon(object):
         if not self.game.player.is_alive:
             return False
 
-        # no need to fire is player is behind
+        # no need to fire if player is behind
         if self.position == 'down' and self.y > self.game.player.y:
             return False
         elif self.position == 'up' and self.y < self.game.player.y:
@@ -135,11 +133,14 @@ class Cannon(object):
         elif self.position == 'left' and self.x < self.game.player.x:
             return False
 
-        # calculate distance between player and canon and if it's close enough - fire
+        # calculate distance between player and canon - if it's close enough - fire
         return self.distance_from_player() < self.max_distance + 2
 
+    def is_close_enough(self):
+        return self.distance_from_player() < self.max_distance + 3
+
     def image(self):
-        return self.sprite
+        return self.sprites[self.position]
 
     def move(self):
         if self.fire_timer > 0:
@@ -148,6 +149,18 @@ class Cannon(object):
         if self.should_fire() and self.fire_timer <= 0:
             self.fire_timer = self.fire_frequency
             self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
+        elif self.is_close_enough():
+            # follow player ship and switch position if needed
+            if abs(self.y - self.game.player.y) < 2:
+                if self.x > self.game.player.x:
+                    self.position = 'left'
+                else:
+                    self.position = 'right'
+            elif abs(self.x - self.game.player.x) < 2:
+                if self.y > self.game.player.y:
+                    self.position = 'up'
+                else:
+                    self.position = 'down'
 
 
 class Ship(object):
