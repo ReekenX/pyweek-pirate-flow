@@ -658,7 +658,7 @@ if __name__=='__main__':
         for mini_medal in game.medals:
             if mini_medal.reaches(game.player):
                 # play healt song
-                sound = pygame.mixer.Sound('./data/music/mini_medal.wav')
+                sound = pygame.mixer.Sound('./data/music/medal.wav')
                 sound.set_volume(0.2)
                 sound.play()
 
@@ -674,7 +674,7 @@ if __name__=='__main__':
                     sound.play()
 
                 # drop collected item
-                game.mini_medals.remove(mini_medal)
+                game.medals.remove(mini_medal)
             else:
                 image = mini_medal.image()
                 screen.blit(image, (int((mini_medal.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((mini_medal.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
