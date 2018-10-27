@@ -184,7 +184,7 @@ class Ship(object):
 
         # ship traveling settings
         self.travel_left = 3
-        self.travel_routine = 3
+        self.travel_routine = 5
         self.travel_timer = 0
         self.travel_frequency = 2000 # in miliseconds
 
@@ -228,14 +228,18 @@ class Ship(object):
             if self.travel_left == 0:
                 self.travel_left = self.travel_routine
 
-                if self.position == 'up':
-                    self.position = 'right'
-                elif self.position == 'down':
-                    self.position = 'left'
-                elif self.position == 'left':
-                    self.position = 'up'
-                else:
-                    self.position = 'down'
+                # change position around clock
+                if self.position == 'up': self.position = 'right'
+                elif self.position == 'down': self.position = 'left'
+                elif self.position == 'left': self.position = 'up'
+                else: self.position = 'down'
+
+            # move based on current position
+            if self.position == 'up': self.y -= 1
+            elif self.position == 'down': self.y += 1
+            elif self.position == 'left': self.x -= 1
+            else: self.x += 1
+
 
         if self.should_fire() and self.fire_timer <= 0:
             self.fire_timer = self.fire_frequency
