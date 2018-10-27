@@ -2,7 +2,7 @@
 
 import os
 import math
-import wave
+import random
 import configparser
 import pygame
 import pygame.locals
@@ -164,11 +164,11 @@ class Cannon(object):
 
 
 class Ship(object):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, position):
         self.game = game
         self.x = x
         self.y = y
-        self.position = 'left'
+        self.position = position
         self.max_distance = 6
 
         # rotate ship based on it's position
@@ -548,7 +548,7 @@ class Level(object):
                     self.map[y][x]['image'] = 'water'
                 elif tile['name'] == 'ship':
                     # add medal to the map
-                    self.game.ships.append(Ship(self.game, x, y))
+                    self.game.ships.append(Ship(self.game, x, y, random.choice(['up', 'down', 'right', 'left'])))
 
                     # replace player place in the map with the water
                     self.map[y][x] = self.keys['.']
