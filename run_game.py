@@ -99,14 +99,24 @@ class Cannon(object):
         self.y = y
         self.position = position
         self.max_distance = 6
+        self.rotate_to = None
+        self.current_angle = None
 
         # rotate canon based on it's position
-        self.sprites = {
-            'left': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 180),
-            'right': pygame.image.load('./data/sprites/cannon.png').convert_alpha(),
-            'up': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 90),
-            'down': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), 270)
+        self.angles = {
+            'left': 180,
+            'right': 0,
+            'up': 90,
+            'down': 270
         }
+        self.sprites = {
+            'left': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['left']),
+            'right': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['right']),
+            'up': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['up']),
+            'down': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['down'])
+        }
+        self.sprite = self.sprites[self.position]
+        self.current_angle = self.angles[self.position]
 
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
@@ -140,27 +150,38 @@ class Cannon(object):
         return self.distance_from_player() < self.max_distance + 3
 
     def image(self):
-        return self.sprites[self.position]
+        return self.sprite
 
     def move(self):
         if self.fire_timer > 0:
             self.fire_timer -= self.game.clock_elapsed
 
-        if self.should_fire() and self.fire_timer <= 0:
-            self.fire_timer = self.fire_frequency
-            self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
-        elif self.is_close_enough():
-            # follow player ship and switch position if needed
-            if abs(self.y - self.game.player.y) < 2:
-                if self.x > self.game.player.x:
-                    self.position = 'left'
-                else:
-                    self.position = 'right'
-            elif abs(self.x - self.game.player.x) < 2:
-                if self.y > self.game.player.y:
-                    self.position = 'up'
-                else:
-                    self.position = 'down'
+        if self.rotate_to is not None:
+            if self.rotate_to > self.current_angle:
+                self.current_angle += 10
+            elif self.rotate_to < self.current_angle:
+                self.current_angle -= 10
+            self.sprite = pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.current_angle)
+            if self.current_angle == self.rotate_to:
+                self.rotate_to = None
+        else:
+            if self.should_fire() and self.fire_timer <= 0:
+                self.fire_timer = self.fire_frequency
+                self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
+            elif self.is_close_enough():
+                # follow player ship and switch position if needed
+                if abs(self.y - self.game.player.y) < 2:
+                    if self.x > self.game.player.x:
+                        self.position = 'left'
+                    else:
+                        self.position = 'right'
+                    self.rotate_to = self.angles[self.position]
+                elif abs(self.x - self.game.player.x) < 2:
+                    if self.y > self.game.player.y:
+                        self.position = 'up'
+                    else:
+                        self.position = 'down'
+                    self.rotate_to = self.angles[self.position]
 
 
 class Ship(object):

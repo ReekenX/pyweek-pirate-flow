@@ -32,7 +32,7 @@ except RuntimeError:
     package = zipfile.ZipFile(zipname, 'w')
 
 # core files
-for name in 'README.txt run_game.py'.split():
+for name in 'README.md run_game.py'.split():
     package.write(name, os.path.join(base, name))
 package.write('run_game.py', os.path.join(base, 'run_game.pyw'))
 
