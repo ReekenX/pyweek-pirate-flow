@@ -18,8 +18,8 @@ DEPENDENCIES
 
 You might need to install some of these before running the game:
 
-    Python: http://www.python.org/
-    PyGame: http://www.pygame.org/
+    Python 3: http://www.python.org/
+    Pygame: http://www.pygame.org/
 
 
 RUNNING THE GAME
@@ -31,6 +31,7 @@ Othewise open a terminal / console and "cd" to the game directory and run:
 
     python run_game.py
 
+Please use Python 3.
 
 LICENSE
 -------
