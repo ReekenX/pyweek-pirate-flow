@@ -393,13 +393,24 @@ class Player(object):
             if self.dead_timer > 0:
                 self.dead_timer -= self.game.clock_elapsed
         else:
+            # rotate ship till correct position
             if self.rotate_to > self.current_angle:
                 self.current_angle += 15
             elif self.rotate_to < self.current_angle:
                 self.current_angle -= 15
             self.sprite = pygame.transform.rotate(self.down_image, self.current_angle)
+
+            # once rotation finished - move ship
             if self.current_angle == self.rotate_to:
                 self.rotate_to = None
+                if self.position == 'left':
+                    self.x -= 1
+                elif self.position == 'right':
+                    self.x += 1
+                elif self.position == 'up':
+                    self.y -= 1
+                elif self.position == 'down':
+                    self.y += 1
 
     def up(self):
         if self.position == 'down': return False
@@ -425,6 +436,8 @@ class Player(object):
             self.position = 'down'
             self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
             self.rotate_to = self.angles[self.position]
+            if self.current_angle == 270 and self.rotate_to == 0:
+                self.current_angle = -90
             return True
         else:
             return False
@@ -435,10 +448,14 @@ class Player(object):
         self.game.achievements.distance_traveled += 1
 
         if self.game.level.get_tile(self.x - 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x - 2, self.y)['name'] != 'sand':
-            self.x -= 1
-            self.position = 'left'
-            self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
-            self.rotate_to = self.angles[self.position]
+            if self.position == 'left':
+                self.x -= 1
+            else:
+                self.position = 'left'
+                self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+                self.rotate_to = self.angles[self.position]
+                if self.current_angle == 0 and self.rotate_to == 270:
+                    self.current_angle = 360
             return True
         else:
             return False
