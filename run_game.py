@@ -99,8 +99,6 @@ class Cannon(object):
         self.y = y
         self.position = position
         self.max_distance = 6
-        self.rotate_to = None
-        self.current_angle = None
 
         # rotate canon based on it's position
         self.angles = {
@@ -109,13 +107,15 @@ class Cannon(object):
             'up': 90,
             'down': 270
         }
+        self.down_image = pygame.image.load('./data/sprites/cannon.png').convert_alpha()
         self.sprites = {
-            'left': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['left']),
-            'right': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['right']),
-            'up': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['up']),
-            'down': pygame.transform.rotate(pygame.image.load('./data/sprites/cannon.png').convert_alpha(), self.angles['down'])
+            'left': pygame.transform.rotate(self.down_image, self.angles['left']),
+            'right': pygame.transform.rotate(self.down_image, self.angles['right']),
+            'up': pygame.transform.rotate(self.down_image, self.angles['up']),
+            'down': pygame.transform.rotate(self.down_image, self.angles['down'])
         }
         self.sprite = self.sprites[self.position]
+        self.rotate_to = None
         self.current_angle = self.angles[self.position]
 
         self.fire_timer = 0
@@ -207,14 +207,17 @@ class Ship(object):
             'up': 180,
             'down': 0
         }
-        self.sprite = pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), self.angles[self.position]), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
+        self.down_image = pygame.transform.scale(pygame.image.load('./data/sprites/ship.png').convert_alpha(), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
+        self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+        self.rotate_to = None
+        self.current_angle = self.angles[self.position]
 
         self.fire_timer = 0
-        self.fire_frequency = 2000 # in miliseconds
+        self.fire_frequency = 3000 # in miliseconds
 
         # ship traveling settings
-        self.travel_left = 3
-        self.travel_routine = 5
+        self.travel_left = 1
+        self.travel_routine = 3
         self.travel_timer = 0
         self.travel_frequency = 2000 # in miliseconds
 
@@ -247,34 +250,44 @@ class Ship(object):
         return self.sprite
 
     def move(self):
-        if self.fire_timer > 0:
-            self.fire_timer -= self.game.clock_elapsed
+        if self.rotate_to is None:
+            if self.fire_timer > 0:
+                self.fire_timer -= self.game.clock_elapsed
+            if self.travel_timer > 0:
+                self.travel_timer -= self.game.clock_elapsed
+            else:
+                self.travel_timer = self.travel_frequency
+                self.travel_left -= 1
+                if self.travel_left == 0:
+                    self.travel_left = self.travel_routine
 
-        if self.travel_timer > 0:
-            self.travel_timer -= self.game.clock_elapsed
+                    # change position around clock
+                    if self.position == 'up': self.position = 'right'
+                    elif self.position == 'down': self.position = 'left'
+                    elif self.position == 'left': self.position = 'up'
+                    else: self.position = 'down'
+                    self.rotate_to = self.angles[self.position]
+                    if self.rotate_to == 270 and self.current_angle == 0:
+                        self.current_angle = 360
+                    print(self.rotate_to, self.current_angle)
+
+                # move based on current position
+                if self.position == 'up': self.y -= 1
+                elif self.position == 'down': self.y += 1
+                elif self.position == 'left': self.x -= 1
+                else: self.x += 1
+
+            if self.should_fire() and self.fire_timer <= 0:
+                self.fire_timer = self.fire_frequency
+                self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
         else:
-            self.travel_timer = self.travel_frequency
-            self.travel_left -= 1
-            if self.travel_left == 0:
-                self.travel_left = self.travel_routine
-
-                # change position around clock
-                if self.position == 'up': self.position = 'right'
-                elif self.position == 'down': self.position = 'left'
-                elif self.position == 'left': self.position = 'up'
-                else: self.position = 'down'
-                self.sprite = pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), self.angles[self.position]), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
-
-            # move based on current position
-            if self.position == 'up': self.y -= 1
-            elif self.position == 'down': self.y += 1
-            elif self.position == 'left': self.x -= 1
-            else: self.x += 1
-
-
-        if self.should_fire() and self.fire_timer <= 0:
-            self.fire_timer = self.fire_frequency
-            self.game.bullets.append(Bullet(self.x, self.y, self.position, int(self.distance_from_player()) - 1))
+            if self.rotate_to > self.current_angle:
+                self.current_angle += 15
+            elif self.rotate_to < self.current_angle:
+                self.current_angle -= 15
+            self.sprite = pygame.transform.rotate(self.down_image, self.current_angle)
+            if self.current_angle == self.rotate_to:
+                self.rotate_to = None
 
 
 class Explosion(object):
