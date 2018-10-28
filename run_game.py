@@ -368,26 +368,38 @@ class Player(object):
         self.score = 0
         self.initialized = False
 
+        self.rotate_to = None
+        self.angles = {
+            'left': 270,
+            'right': 90,
+            'up': 180,
+            'down': 0
+        }
+        self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+        self.current_angle = self.angles[self.position]
+
     def set_position(self, x, y):
         self.x = x
         self.y = y
         self.initialized = True
 
     def image(self):
-        if self.position == 'right':
-            return pygame.transform.rotate(self.down_image, 90)
-        if self.position == 'up':
-            return pygame.transform.rotate(self.down_image, 180)
-        if self.position == 'left':
-            return pygame.transform.rotate(self.down_image, 270)
-        else:
-            return self.down_image
+        return self.sprite
 
     def move(self):
-        if self.fire_timer > 0:
-            self.fire_timer -= self.game.clock_elapsed
-        if self.dead_timer > 0:
-            self.dead_timer -= self.game.clock_elapsed
+        if self.rotate_to is None:
+            if self.fire_timer > 0:
+                self.fire_timer -= self.game.clock_elapsed
+            if self.dead_timer > 0:
+                self.dead_timer -= self.game.clock_elapsed
+        else:
+            if self.rotate_to > self.current_angle:
+                self.current_angle += 15
+            elif self.rotate_to < self.current_angle:
+                self.current_angle -= 15
+            self.sprite = pygame.transform.rotate(self.down_image, self.current_angle)
+            if self.current_angle == self.rotate_to:
+                self.rotate_to = None
 
     def up(self):
         if self.position == 'down': return False
@@ -397,6 +409,8 @@ class Player(object):
         if self.game.level.get_tile(self.x, self.y - 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y - 2)['name'] != 'sand':
             self.y -= 1
             self.position = 'up'
+            self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+            self.rotate_to = self.angles[self.position]
             return True
         else:
             return False
@@ -409,6 +423,8 @@ class Player(object):
         if self.game.level.get_tile(self.x, self.y + 1)['name'] != 'sand' and self.game.level.get_tile(self.x, self.y + 2)['name'] != 'sand':
             self.y += 1
             self.position = 'down'
+            self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+            self.rotate_to = self.angles[self.position]
             return True
         else:
             return False
@@ -421,6 +437,8 @@ class Player(object):
         if self.game.level.get_tile(self.x - 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x - 2, self.y)['name'] != 'sand':
             self.x -= 1
             self.position = 'left'
+            self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+            self.rotate_to = self.angles[self.position]
             return True
         else:
             return False
@@ -433,6 +451,8 @@ class Player(object):
         if self.game.level.get_tile(self.x + 1, self.y)['name'] != 'sand' and self.game.level.get_tile(self.x + 2, self.y)['name'] != 'sand':
             self.x += 1
             self.position = 'right'
+            self.sprite = pygame.transform.rotate(self.down_image, self.angles[self.position])
+            self.rotate_to = self.angles[self.position]
             return True
         else:
             return False
