@@ -176,12 +176,20 @@ class Cannon(object):
                     else:
                         self.position = 'right'
                     self.rotate_to = self.angles[self.position]
+                    if self.rotate_to == 270 and self.current_angle == 0:
+                        self.current_angle = 360
+                    elif self.rotate_to == 0 and self.current_angle == 270:
+                        self.current_angle = -90
                 elif abs(self.x - self.game.player.x) < 2:
                     if self.y > self.game.player.y:
                         self.position = 'up'
                     else:
                         self.position = 'down'
                     self.rotate_to = self.angles[self.position]
+                    if self.rotate_to == 270 and self.current_angle == 0:
+                        self.current_angle = 360
+                    elif self.rotate_to == 0 and self.current_angle == 270:
+                        self.current_angle = -90
 
 
 class Ship(object):
