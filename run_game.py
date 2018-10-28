@@ -269,7 +269,6 @@ class Ship(object):
                     self.rotate_to = self.angles[self.position]
                     if self.rotate_to == 270 and self.current_angle == 0:
                         self.current_angle = 360
-                    print(self.rotate_to, self.current_angle)
 
                 # move based on current position
                 if self.position == 'up': self.y -= 1
@@ -518,25 +517,6 @@ class Camera(object):
     def __init__(self, world_width, world_height):
         self.x = 0
         self.y = 0
-        self.world_width = world_width
-        self.world_height = world_height
-
-    def up(self):
-        if self.y - TILE_HEIGHT >= 0:
-            self.y -= TILE_HEIGHT
-
-    def down(self):
-        if self.y + TILE_HEIGHT <= self.world_height:
-            self.y += TILE_HEIGHT
-
-    def left(self):
-        if self.x - TILE_WIDTH >= 0:
-            self.x -= TILE_WIDTH
-
-    def right(self):
-        if self.x + TILE_WIDTH <= self.world_width:
-            self.x += TILE_WIDTH
-
 
 class Level(object):
     def __init__(self, game):
@@ -717,30 +697,40 @@ if __name__=='__main__':
     medal = pygame.image.load('./data/sprites/medal.png').convert_alpha()
     medal = pygame.transform.scale(medal, (TILE_WIDTH * 2, TILE_HEIGHT * 2))
 
-    myfont = pygame.font.SysFont('Arial', 30)
-
     water = 0
     playing = True
     while playing:
+        # water animation
         water += 2
         if water == 32: water = 0
+
+        # render player
+        game.player.move()
+
+        # position camera so it is always shows centered ship
+        camera.x = game.player.x - int(SCREEN_WIDTH / 2 / TILE_WIDTH)
+        camera.y = game.player.y - int(SCREEN_HEIGHT / 2 / TILE_HEIGHT)
+
+        # do not allow camera go over world boundaries
+        if camera.x < 0: camera.x = 0
+        if camera.y < 0: camera.y = 0
+        if camera.x > game.level.width - int(SCREEN_WIDTH / 2 / TILE_WIDTH):
+            camera.x = game.level.width - int(SCREEN_WIDTH / 2 / TILE_WIDTH)
+        if camera.y > game.level.height - int(SCREEN_HEIGHT / 2 / TILE_HEIGHT):
+            camera.y = game.level.height - int(SCREEN_HEIGHT / 2 / TILE_HEIGHT)
+
         for x in range(-1, int(SCREEN_WIDTH / TILE_WIDTH) + 1):
             for y in range(-1, int(SCREEN_HEIGHT / TILE_HEIGHT) + 1):
                 # render floating water - background layer
                 screen.blit(water_tile, (x * TILE_WIDTH + water, y * TILE_HEIGHT + water))
 
-                camera_x = int(camera.x / TILE_WIDTH)
-                camera_y = int(camera.y / TILE_HEIGHT)
-
                 # render tiles
-                tile = game.level.get_tile(x + camera_x, y + camera_y)
+                tile = game.level.get_tile(x + camera.x, y + camera.y)
                 if tile['name'] != 'water':
                     if tile['name'] == 'sand':
                         screen.blit(sandbg, (x * TILE_WIDTH, y * TILE_HEIGHT))
                     screen.blit(game.level.get_sprite(tile['image']), (x * TILE_WIDTH, y * TILE_HEIGHT))
 
-        # render player
-        game.player.move()
         if game.achievements.distance_traveled == game.achievements.distance_goal:
             game.achievements.distance_reached = True
 
@@ -750,7 +740,7 @@ if __name__=='__main__':
             sound.play()
         if game.player.is_alive:
             image = game.player.image()
-            screen.blit(image, (int((game.player.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+            screen.blit(image, (int((game.player.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((game.player.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render bullets and see if somebody hit somebody
         for bullet in game.bullets:
@@ -832,7 +822,7 @@ if __name__=='__main__':
                 game.bullets.remove(bullet)
             else:
                 image = bullet.image()
-                screen.blit(image, (int((bullet.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((bullet.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+                screen.blit(image, (int((bullet.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((bullet.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render bullet explosions
         for explosion in game.explosions:
@@ -840,7 +830,7 @@ if __name__=='__main__':
                 game.explosions.remove(explosion)
             else:
                 image = explosion.image()
-                screen.blit(image, (int((explosion.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((explosion.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+                screen.blit(image, (int((explosion.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((explosion.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render special items - hearts
         for heart in game.hearts:
@@ -869,7 +859,7 @@ if __name__=='__main__':
                 game.hearts.remove(heart)
             else:
                 image = heart.image()
-                screen.blit(image, (int((heart.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((heart.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+                screen.blit(image, (int((heart.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((heart.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render special items - medals
         for mini_medal in game.medals:
@@ -894,21 +884,21 @@ if __name__=='__main__':
                 game.medals.remove(mini_medal)
             else:
                 image = mini_medal.image()
-                screen.blit(image, (int((mini_medal.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((mini_medal.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+                screen.blit(image, (int((mini_medal.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((mini_medal.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render first enemy group - cannons
         for cannon in game.cannons:
             if game.screen == "gameplay":
                 cannon.move()
             image = cannon.image()
-            screen.blit(image, (int((cannon.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+            screen.blit(image, (int((cannon.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((cannon.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # render second enemy group - ships
         for ship in game.ships:
             if game.screen == "gameplay":
                 ship.move()
             image = ship.image()
-            screen.blit(image, (int((ship.x - camera_x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((ship.y - camera_y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
+            screen.blit(image, (int((ship.x - camera.x) * TILE_WIDTH) + int(TILE_WIDTH / 2) - int(image.get_width() / 2), int((ship.y - camera.y) * TILE_HEIGHT) + int(TILE_HEIGHT / 2) - int(image.get_height() / 2)))
 
         # informational text
         if game.started:
@@ -1132,17 +1122,13 @@ if __name__=='__main__':
                     if game.started:
                         if game.screen == 'gameplay':
                             if event.key == pygame.K_DOWN:
-                                if game.player.down():
-                                    camera.down()
+                                game.player.down()
                             elif event.key == pygame.K_UP:
-                                if game.player.up():
-                                    camera.up()
+                                game.player.up()
                             elif event.key == pygame.K_LEFT:
-                                if game.player.left():
-                                    camera.left()
+                                game.player.left()
                             elif event.key == pygame.K_RIGHT:
-                                if game.player.right():
-                                    camera.right()
+                                game.player.right()
                             elif event.key == pygame.K_SPACE:
                                 game.player.fire()
                             elif event.key == pygame.K_a:
