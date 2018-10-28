@@ -422,6 +422,7 @@ class Player(object):
 
     def up(self):
         if self.position == 'down': return False
+        if self.rotate_to is not None: return False
 
         self.game.achievements.distance_traveled += 1
 
@@ -436,6 +437,7 @@ class Player(object):
 
     def down(self):
         if self.position == 'up': return False
+        if self.rotate_to is not None: return False
 
         self.game.achievements.distance_traveled += 1
 
@@ -452,6 +454,7 @@ class Player(object):
 
     def left(self):
         if self.position == 'right': return False
+        if self.rotate_to is not None: return False
 
         self.game.achievements.distance_traveled += 1
 
@@ -470,6 +473,7 @@ class Player(object):
 
     def right(self):
         if self.position == 'left': return False
+        if self.rotate_to is not None: return False
 
         self.game.achievements.distance_traveled += 1
 
