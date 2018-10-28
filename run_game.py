@@ -201,12 +201,13 @@ class Ship(object):
         self.max_distance = 6
 
         # rotate ship based on it's position
-        self.sprites = {
-            'up': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 180), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
-            'down': pygame.transform.scale(pygame.image.load('./data/sprites/ship.png').convert_alpha(), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
-            'right': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 90), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5))),
-            'left': pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), 270), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
+        self.angles = {
+            'left': 270,
+            'right': 90,
+            'up': 180,
+            'down': 0
         }
+        self.sprite = pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), self.angles[self.position]), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
 
         self.fire_timer = 0
         self.fire_frequency = 2000 # in miliseconds
@@ -243,7 +244,7 @@ class Ship(object):
         return self.distance_from_player() < self.max_distance + 2
 
     def image(self):
-        return self.sprites[self.position]
+        return self.sprite
 
     def move(self):
         if self.fire_timer > 0:
@@ -262,6 +263,7 @@ class Ship(object):
                 elif self.position == 'down': self.position = 'left'
                 elif self.position == 'left': self.position = 'up'
                 else: self.position = 'down'
+                self.sprite = pygame.transform.scale(pygame.transform.rotate(pygame.image.load('./data/sprites/ship.png').convert_alpha(), self.angles[self.position]), (int(TILE_WIDTH * 2.5), int(TILE_HEIGHT * 2.5)))
 
             # move based on current position
             if self.position == 'up': self.y -= 1
